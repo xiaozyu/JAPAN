@@ -3,351 +3,540 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>東京自由行導航</title>
+  <title>東京自由行導航助手</title>
   
   <!-- PWA 設定（可加到手機主畫面當 App） -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="東京行">
-  <meta name="theme-color" content="#1e293b">
+  <meta name="theme-color" content="#0F172A">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Leaflet -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <style>
-    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    #map-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-    iframe { width: 100%; height: 100%; border: 0; }
+    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    #map { height: 42vh; width: 100%; z-index: 10; }
+    .scroll-touch { -webkit-overflow-scrolling: touch; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-800 flex flex-col h-full select-none">
+<body class="bg-slate-100 flex flex-col h-full text-slate-800 select-none">
 
-  <!-- 頂部浮動切換欄 -->
-  <header class="absolute top-0 left-0 right-0 z-30 p-2 pointer-events-none">
-    <div class="max-w-md mx-auto pointer-events-auto">
-      <!-- 頂部標題與匯率 -->
-      <div class="bg-slate-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-xl shadow-lg flex justify-between items-center border border-slate-700/50 mb-1.5">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">🇯🇵</span>
-          <span class="font-bold text-xs tracking-wider" id="day-title">Day 1 上野・秋葉原</span>
-        </div>
-        <span class="text-[10px] bg-slate-800 border border-slate-600 px-2 py-0.5 rounded-full text-slate-300">匯率 JPY×0.21</span>
+  <!-- 頂部導航欄 -->
+  <header class="bg-slate-900 text-white shadow-md z-30 shrink-0">
+    <div class="px-3 py-2 flex items-center justify-between border-b border-slate-800">
+      <div class="flex items-center gap-1.5">
+        <span class="text-base">🇯🇵</span>
+        <span class="font-bold text-xs tracking-wider" id="header-title">東京自由行導航</span>
       </div>
+      
+      <!-- 右上角：日幣自動換算小工具按鈕 -->
+      <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
+        <span>💴 算匯率</span>
+      </button>
+    </div>
 
-      <!-- 日期滑動切換按鈕 -->
-      <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-        <button onclick="switchDay('day0')" id="btn-day0" class="tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-slate-800/90 text-slate-300 shadow border border-slate-700">D0 10/8</button>
-        <button onclick="switchDay('day1')" id="btn-day1" class="tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-blue-600 text-white shadow">D1 10/9</button>
-        <button onclick="switchDay('day2')" id="btn-day2" class="tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-slate-800/90 text-slate-300 shadow border border-slate-700">D2 10/10</button>
-        <button onclick="switchDay('day3')" id="btn-day3" class="tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-slate-800/90 text-slate-300 shadow border border-slate-700">D3 10/11</button>
-        <button onclick="switchDay('day4')" id="btn-day4" class="tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-slate-800/90 text-slate-300 shadow border border-slate-700">D4 10/12</button>
-      </div>
+    <!-- 日期切換 Tab -->
+    <div class="flex overflow-x-auto scroll-touch p-2 gap-1.5 text-xs font-semibold no-scrollbar" id="day-tabs">
+      <button onclick="switchDay('day0')" id="tab-day0" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D0 10/8</button>
+      <button onclick="switchDay('day1')" id="tab-day1" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-blue-600 text-white font-bold">D1 上野/秋葉原</button>
+      <button onclick="switchDay('day2')" id="tab-day2" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D2 淺草/晴空塔</button>
+      <button onclick="switchDay('day3')" id="tab-day3" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D3 神宮/SHIBUYA</button>
+      <button onclick="switchDay('day4')" id="tab-day4" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D4 多慶屋/返台</button>
     </div>
   </header>
 
-  <!-- 中間：滿版原生 Google 地圖 -->
-  <div id="map-container">
-    <iframe id="gmap-iframe" src="" allowfullscreen loading="lazy"></iframe>
-  </div>
+  <!-- 上半部：清爽高對比地圖（含順向路線連線） -->
+  <div id="map"></div>
 
-  <!-- 下方：可收合行程小卡抽屜 -->
-  <div class="absolute bottom-0 left-0 right-0 z-30 pointer-events-none p-3 pb-safe">
-    <div class="max-w-md mx-auto pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/80 overflow-hidden transition-all duration-300" id="card-drawer">
+  <!-- 下半部：滾動行程卡片與採買清單 -->
+  <main class="flex-1 overflow-y-auto scroll-touch p-3 space-y-3 z-10 bg-slate-100 pb-12">
+    <!-- 今日核心概覽 -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex justify-between items-center">
+        <span class="text-[11px] text-blue-600 font-bold uppercase" id="day-date"></span>
+        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">票券：72hr地鐵券 / Skyliner</span>
+      </div>
+      <h2 class="text-sm font-bold text-slate-900 mt-0.5" id="day-title"></h2>
+    </div>
+
+    <!-- 行程景點清單 -->
+    <div class="space-y-2.5" id="spots-list"></div>
+
+    <!-- 購物清單區塊 -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200" id="shopping-card">
+      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <span>🛍️</span> 本日推薦必買 & 退稅注意事項
+      </h3>
+      <div class="space-y-2 text-xs" id="shopping-list"></div>
+    </div>
+  </main>
+
+  <!-- 彈出式：日幣/台幣自動換算機 Modal -->
+  <div id="calc-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-4 w-full max-w-xs shadow-2xl border border-slate-200 space-y-3 animate-fade-in">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1">
+          <span>💴</span> 日幣換算台幣
+        </h3>
+        <button onclick="toggleCalcModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none">✕</button>
+      </div>
       
-      <!-- 拖曳收合把手 / 標題列 -->
-      <div class="px-4 py-2 bg-slate-50 border-b border-gray-200 flex justify-between items-center cursor-pointer" onclick="toggleDrawer()">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-          <span class="text-xs font-bold text-gray-700" id="drawer-status">點此切換行程列表（今日 5 個點）</span>
+      <!-- 輸入框 -->
+      <div class="space-y-2">
+        <div>
+          <label class="text-[11px] font-bold text-slate-500">輸入日圓金額 (JPY)：</label>
+          <div class="relative mt-1">
+            <input type="number" id="calc-jpy" placeholder="例如: 5500" oninput="calculateExchange()"
+                   class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-bold">円</span>
+          </div>
         </div>
-        <span class="text-xs text-gray-400 font-bold" id="drawer-arrow">▲ 展開</span>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+          <div class="text-[11px] text-amber-800 font-bold">折合新台幣約：</div>
+          <div class="text-2xl font-black text-amber-600 font-mono mt-0.5" id="calc-twd">NT$ 0</div>
+          <div class="text-[10px] text-amber-700 mt-1" id="tax-alert"></div>
+        </div>
       </div>
 
-      <!-- 滾動行程內容（預設收納高度 170px，展開可全看） -->
-      <div class="p-3 overflow-y-auto max-h-[38vh] space-y-2 text-xs" id="spots-list">
-        <!-- JS 動態生成 -->
+      <!-- 匯率自訂 -->
+      <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t">
+        <span>當前匯率: 1 JPY = </span>
+        <div class="flex items-center gap-1">
+          <input type="number" step="0.001" id="custom-rate" value="0.21" oninput="calculateExchange()"
+                 class="w-12 bg-slate-100 border text-center rounded px-1 py-0.5 text-slate-700 font-bold">
+          <span>TWD</span>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // 匯率
-    const JPY_RATE = 0.21;
+    // 匯率計算邏輯
+    function toggleCalcModal() {
+      const modal = document.getElementById('calc-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('calc-jpy').focus();
+      }
+    }
 
-    // 行程資料集
-    const itinerary = {
+    function calculateExchange() {
+      const jpy = parseFloat(document.getElementById('calc-jpy').value) || 0;
+      const rate = parseFloat(document.getElementById('custom-rate').value) || 0.21;
+      const twd = Math.round(jpy * rate);
+      document.getElementById('calc-twd').innerText = `NT$ ${twd.toLocaleString()}`;
+
+      const taxAlert = document.getElementById('tax-alert');
+      if (jpy >= 5000) {
+        taxAlert.innerHTML = `🎉 已達 <b>${jpy.toLocaleString()} 円</b>（滿5,000円出示護照正本可免稅 10%）`;
+        taxAlert.className = "text-[10px] text-emerald-700 font-bold mt-1";
+      } else {
+        const remain = 5000 - jpy;
+        taxAlert.innerHTML = `差 ${remain.toLocaleString()} 円可達退稅門檻 (5,000円)`;
+        taxAlert.className = "text-[10px] text-slate-500 mt-1";
+      }
+    }
+
+    // 核心行程資料集（含 SOP、機台顏色、中日站名、採買建議）
+    const travelData = {
       day0: {
-        title: "D0 10/8 啟程準備",
-        centerQ: "藍水輕旅",
+        date: "10/08 (週四)",
+        title: "啟程準備・前宿藍水輕旅",
         spots: [
           {
-            time: "19:00~",
             name: "藍水輕旅 (Blue Water Hotel)",
             nameJp: "桃園市大園區高鐵北路",
-            stay: "過夜",
-            transit: "台中高鐵 ➡️ 桃園高鐵站，步行 8 分鐘抵達",
-            tip: "Check-in 時務必向櫃檯預約隔天早上的桃機接駁車！",
-            q: "藍水輕旅"
+            lat: 25.0116,
+            lng: 121.2148,
+            time: "19:00~ 入住",
+            stay: "過夜休息",
+            stepTip: "抵達櫃檯辦理 Check-in 時，務必立刻預約隔天早上的「桃機一航接駁車」！確認護照、eSIM憑證備妥。",
+            transit: "台中高鐵 ➡️ 桃園高鐵站 3 號出口，步行約 8 分鐘",
+            actionTip: "早點休息養精蓄銳，準備隔日早班機。"
           }
-        ]
+        ],
+        shopping: []
       },
       day1: {
-        title: "D1 10/9 上野・秋葉原・蟹道樂",
-        centerQ: "APA Hotel Ueno Ekiminami",
+        date: "10/09 (週五)",
+        title: "抵達東京・秋葉原電器・阿美橫町・蟹道樂",
         spots: [
           {
-            time: "11:55 - 12:40",
             name: "成田國際機場 第二航廈",
-            nameJp: "成田空港第2ビル駅",
-            stay: "45分",
-            transit: "出境後下 B1 出示憑證兌換 Skyliner 車票",
-            tip: "搭乘 12:40 Skyliner 直達京成上野（車程 41 分鐘）",
-            q: "成田機場第2航廈"
+            nameJp: "成田空港第2ビル駅 (なりただいに)",
+            lat: 35.7730,
+            lng: 140.3878,
+            time: "11:55 - 12:40",
+            stay: "45 分鐘",
+            stepTip: "出境後下到 B1 鐵道改札口，找【京成電鐵 (Keisei)】的「藍色售票機台」或人工櫃檯，出示 Klook QR Code 兌換 Skyliner 車票！",
+            transit: "搭乘 12:40 Skyliner 直達京成上野（第 1 月台，車程 41 分鐘）",
+            actionTip: "領完票在旁邊自動販賣機買水，體驗西瓜卡手機逼一下感應！"
           },
           {
-            time: "14:00 - 14:30",
             name: "APA Hotel Ueno Ekiminami",
             nameJp: "アパホテル〈上野駅南〉",
-            stay: "寄放行李",
-            transit: "京成上野站正面口出來，步行 5 分鐘",
-            tip: "先寄放行李，輕裝出發去秋葉原",
-            q: "APA Hotel Ueno Ekiminami"
+            lat: 35.7092,
+            lng: 139.7758,
+            time: "14:00 - 14:30",
+            stay: "30 分鐘",
+            stepTip: "京成上野站「正面口」出站，往阿美橫町方向走 5 分鐘抵達飯店。",
+            transit: "步行 5 分鐘",
+            actionTip: "櫃檯出示護照辦理入住/寄放行李，輕裝出發前往秋葉原。"
           },
           {
-            time: "14:40 - 16:00",
             name: "秋葉原 Radio 會館",
-            nameJp: "秋葉原ラジオ会館",
-            stay: "1.5小時",
-            transit: "步行 8 分鐘（或日比谷線 1 站至秋葉原電氣街口）",
-            tip: "動漫模型公仔集中地",
-            q: "秋葉原ラジオ会館"
+            nameJp: "秋葉原ラジオ会館 (ラジオかいかん)",
+            lat: 35.6979,
+            lng: 139.7719,
+            time: "14:40 - 16:00",
+            stay: "1.5 小時",
+            stepTip: "從飯店直接散步過去最快（900m 直線步行 11 分鐘）！若要搭車請認明「灰色圓圈 H (日比谷線) 仲御徒町站」，切勿走進綠色方框 JR！",
+            transit: "步行 11 分鐘即達秋葉原電氣街口",
+            actionTip: "整棟 10 層樓全是正版模型、動漫周邊，可挑選喜歡的角色公仔。"
           },
           {
+            name: "友都八喜 Akiba (Yodobashi)",
+            nameJp: "ヨドバシカメラ マルチメディアAkiba",
+            lat: 35.6996,
+            lng: 139.7745,
             time: "16:00 - 17:00",
-            name: "友都八喜 Akiba",
-            nameJp: "ヨドバシカメラ Akiba",
-            stay: "1小時",
-            transit: "秋葉原站昭和通口步行 1 分鐘",
-            tip: "大型 3C 電器賣場，滿額可退稅",
-            q: "ヨドバシカメラ マルチメディアAkiba"
+            stay: "1 小時",
+            stepTip: "秋葉原昭和通口旁超巨型 3C 商場。買電器滿 5,000 日圓需至退稅專屬櫃檯【Tax-Free】，出示護照正本直接扣 10% 現金稅額。",
+            transit: "秋葉原站前步行 1 分鐘",
+            actionTip: "耳機、相機、手錶或日本質感生活小家電。"
           },
           {
-            time: "17:00 - 18:20",
             name: "二木之菓子 (阿美橫町)",
             nameJp: "二木の菓子 第一営業所",
-            stay: "1.2小時",
-            transit: "秋葉原漫步回阿美橫町約 10 分鐘",
-            tip: "採買零食伴手禮！買完先拿回飯店房間放，輕裝吃晚餐",
-            q: "二木の菓子 第一営業所"
+            lat: 35.7095,
+            lng: 139.7744,
+            time: "17:00 - 18:20",
+            stay: "1.2 小時",
+            stepTip: "阿美橫町必買零食批發店！分為兩棟（第一營業所與 Bic 館），在同棟買滿 5,000 日圓出示護照走「免稅櫃檯」，會以專用透明塑膠袋密封（在境內不能拆）。",
+            transit: "從秋葉原漫步回上野阿美橫町（約 10 分鐘）",
+            actionTip: "採買完大包戰利品，先花 3 分鐘拿回 APA 房間放，再優雅去吃螃蟹大餐！"
           },
           {
-            time: "19:00 - 21:00",
             name: "蟹道樂 上野店 (8F)",
-            nameJp: "かに道楽 上野店",
-            stay: "2小時",
+            nameJp: "かに道楽 上野店 (永藤ビル 8F)",
+            lat: 35.7112,
+            lng: 139.7733,
+            time: "19:00 - 21:00",
+            stay: "2 小時",
+            stepTip: "認明永藤大樓搭電梯直上 8 樓。已預約 19:00，向店員出示訂位人姓名即可入座！",
             transit: "從 APA 飯店步行僅 350m（約 4 分鐘）",
-            tip: "已訂位 19:00！精緻螃蟹會席料理，吃完散步回飯店",
-            q: "かに道楽 上野店"
+            actionTip: "享用精緻螃蟹刺身、烤蟹肉、螃蟹火鍋與釜飯，吃完散步回飯店休息。"
           }
+        ],
+        shopping: [
+          { name: "二木之菓子 日本限定零食/米果", jpy: 5500, note: "滿 5,000 円免稅，需出示護照正本，密封袋境內勿拆" },
+          { name: "日東紅茶奶茶包 / 辻利抹茶粉", jpy: 1200, note: "辦公室與家庭沖泡首選" }
         ]
       },
       day2: {
-        title: "D2 10/10 淺草・晴空塔・一頭牛燒肉",
-        centerQ: "東京晴空塔",
+        date: "10/10 (週六)",
+        title: "淺草雷門・押上晴空塔城・一頭牛燒肉 房家",
         spots: [
           {
-            time: "10:15 - 12:30",
             name: "淺草寺・雷門",
             nameJp: "浅草寺・雷門 (せんそうじ)",
-            stay: "2小時",
-            transit: "上野站搭地鐵銀座線至淺草站（5 分鐘，1 號出口）",
-            tip: "逛仲見世商店街、吃菠蘿麵包，午餐排今半或炸牛元村",
-            q: "淺草寺 雷門"
+            lat: 35.7111,
+            lng: 139.7963,
+            time: "10:15 - 12:30",
+            stay: "2 小時",
+            stepTip: "上野站走進地鐵，認明【橘色圓圈 G (銀座線)】，搭往淺草方向（車程 5 分鐘，1 號出口直達雷門）。全程刷 72hr 地鐵券！",
+            transit: "銀座線 5 分鐘",
+            actionTip: "雷門巨大紅燈籠打卡 ➡️ 仲見世商店街吃花月堂波蘿麵包 ➡️ 本殿投 5 円祈福抽籤 ➡️ 午餐吃今半壽喜燒或炸牛元村。"
           },
           {
-            time: "14:30 - 17:30",
-            name: "墨田水族館 / 晴空塔 Solamachi",
+            name: "墨田水族館 / 晴空塔城",
             nameJp: "すみだ水族館 / 東京ソラマチ",
-            stay: "3小時",
-            transit: "淺草搭地鐵至押上站直通商場",
-            tip: "室內看超萌企鵝水母，吹冷氣逛商場休息",
-            q: "すみだ水族館"
+            lat: 35.7100,
+            lng: 139.8107,
+            time: "14:30 - 17:30",
+            stay: "3 小時",
+            stepTip: "從淺草站搭地鐵至「押上站 (晴空塔前)」，地下道直通 Solamachi 商場 5 樓進入墨田水族館。",
+            transit: "東武/地鐵直達押上站（5 分鐘）",
+            actionTip: "室內吹冷氣看超萌麥哲倫企鵝水槽與水母大水槽，商場逛街休息喝咖啡。"
           },
           {
-            time: "18:30 - 20:30",
             name: "一頭牛燒肉 房家 上野六丁目店",
             nameJp: "一頭牛焼肉 房家 (ぼうや)",
-            stay: "2小時",
-            transit: "押上搭半藏門線至三越前轉銀座線回上野站（約 20 分鐘）",
-            tip: "已定案！專營整頭黑毛和牛購入，吃飽走 3 分鐘回飯店",
-            q: "一頭牛焼肉 房家 上野六丁目店"
+            lat: 35.7101,
+            lng: 139.7749,
+            time: "18:30 - 20:30",
+            stay: "2 小時",
+            stepTip: "17:30 押上站搭【紫色圓圈 Z (半藏門線)】至三越前站轉【橘色圓圈 G (銀座線)】回上野。房家在阿美橫町旁，店員引導炭火現烤。",
+            transit: "地鐵回上野約 20 分鐘，出站步行 3 分鐘",
+            actionTip: "已定案！專營整頭黑毛和牛購入，推薦盛合牛肉拼盤，吃飽走 3 分鐘回飯店休息。"
           }
+        ],
+        shopping: [
+          { name: "晴空塔限定香蕉蛋糕 Tokyo Banana", jpy: 1600, note: "豹紋/特定限定圖案" },
+          { name: "水族館企鵝玩偶周邊", jpy: 2200, note: "精緻紀念品" }
         ]
       },
       day3: {
-        title: "D3 10/11 神宮・SHIBUYA SKY・居酒屋",
-        centerQ: "SHIBUYA SKY",
+        date: "10/11 (週日)",
+        title: "早餐喫茶・明治神宮・SHIBUYA SKY・居酒屋",
         spots: [
           {
-            time: "08:30 - 10:00",
-            name: "純喫茶 丘 (早餐)",
+            name: "純喫茶 丘 (昭和風早餐)",
             nameJp: "純喫茶 丘 (きっさてん おか)",
-            stay: "1.5小時",
-            transit: "從 APA 步行 2 分鐘即達",
-            tip: "懷舊昭和地下喫茶店，厚鬆餅烤吐司早餐套餐",
-            q: "純喫茶 丘"
+            lat: 35.7103,
+            lng: 139.7753,
+            time: "08:30 - 10:00",
+            stay: "1.5 小時",
+            stepTip: "從 APA 飯店走出來 2 分鐘。隱身在地下的懷舊昭和咖啡館，水晶吊燈與紅絲絨沙發。",
+            transit: "步行 2 分鐘",
+            actionTip: "點厚鬆餅、現烤熱壓吐司與熱咖啡套餐，補足早晨能量。"
           },
           {
-            time: "10:35 - 13:00",
             name: "明治神宮 本殿",
             nameJp: "明治神宮 (めいじじんぐう)",
-            stay: "2小時",
-            transit: "上野搭銀座線至表參道轉千代田線至「明治神宮前站」",
-            tip: "穿過巨大鳥居，碎石路走兩側被踩平處較省力",
-            q: "明治神宮"
+            lat: 35.6764,
+            lng: 139.6993,
+            time: "10:35 - 13:00",
+            stay: "2 小時",
+            stepTip: "上野搭【橘色 G 銀座線】至表參道站，原站轉【綠色 C 千代田線】至「明治神宮前(原宿)站」2 號出口出站。",
+            transit: "地鐵乘車約 25 分鐘（全程 72hr 券覆蓋）",
+            actionTip: "進入巨大的木造大鳥居，碎石森林步道【走兩側被踩平的小徑最省腳力】！參拜本殿與購買結緣御守。"
           },
           {
+            name: "原宿竹下通散策",
+            nameJp: "竹下通り (たけしたどおり)",
+            lat: 35.6702,
+            lng: 139.7027,
             time: "13:00 - 15:00",
-            name: "原宿竹下通",
-            nameJp: "竹下通り",
-            stay: "2小時",
-            transit: "神宮原宿口走出來即達",
-            tip: "原宿散策與午餐輕食",
-            q: "原宿竹下通"
+            stay: "2 小時",
+            stepTip: "神宮原宿口走出來對面就是竹下通。年輕潮流聖地，午餐品嚐周邊特色美食或咖啡輕食。",
+            transit: "神宮原宿口步行 2 分鐘",
+            actionTip: "感受東京潮流文化，沿著貓街慢步往澀谷前進。"
           },
           {
-            time: "17:40 - 17:59 入場",
-            name: "SHIBUYA SKY (14F入口)",
+            name: "SHIBUYA SKY 展望台 (14F)",
             nameJp: "渋谷スクランブルスクエア 14F",
-            stay: "1.5小時",
-            transit: "原宿漫步至澀谷（或搭 1 站地鐵）",
-            tip: "已預約！物品鎖 46F 置物櫃，欣賞日落夕陽與璀璨夜景",
-            q: "SHIBUYA SKY"
+            lat: 35.6585,
+            lng: 139.7023,
+            time: "17:40 - 17:59 入場",
+            stay: "1.5 小時",
+            stepTip: "【極度重要】預約票是 17:40-17:59，逾時直接作廢！14F 出示手機 QR 入場，搭電梯上 46F 【所有背包、帽子、圍巾必須鎖入 100円置物櫃（退幣式），身上只能拿手機或掛頸相機】！",
+            transit: "原宿漫步至澀谷約 15 分鐘（或搭地鐵 1 站）",
+            actionTip: "直達露天頂樓天台，享受東京落日夕陽 ➡️ 澀谷十字路口暮光 ➡️ 璀璨夜景的最美時段！"
           },
           {
-            time: "19:30 - 21:30",
             name: "鳥貴族 澀谷文化村通店 (居酒屋)",
             nameJp: "鳥貴族 渋谷文化村通り店",
-            stay: "2小時",
+            lat: 35.6601,
+            lng: 139.6975,
+            time: "19:30 - 21:30",
+            stay: "2 小時",
+            stepTip: "全日本連鎖知名串燒居酒屋，全品項均一價（每盤約 370 日圓），平板有點餐中文介面！",
             transit: "從 SCRAMBLE SQUARE 步行約 6 分鐘",
-            tip: "炭火串燒居酒屋，吃完澀谷搭銀座線直達回上野",
-            q: "鳥貴族 渋谷文化村通り店"
+            actionTip: "現烤雞肉串燒拼盤、炸雞皮、生啤酒慶祝！吃完從澀谷搭銀座線直達回上野休息。"
           }
+        ],
+        shopping: [
+          { name: "明治神宮 祈福御守", jpy: 1000, note: "神社境內無免稅，自用或送長輩保平安" }
         ]
       },
       day4: {
-        title: "D4 10/12 多慶屋・成田 T2 SOP 返台",
-        centerQ: "多慶屋 TAKEYA 1",
+        date: "10/12 (週一)",
+        title: "多慶屋掃貨・Skyliner・成田 T2 SOP 返台",
         spots: [
           {
-            time: "10:00 - 11:20",
             name: "多慶屋 TAKEYA 1",
             nameJp: "多慶屋 (たけや 1)",
-            stay: "1.2小時",
-            transit: "09:30 退房寄行李，走 7 分鐘抵達",
-            tip: "10:00 2F/3F 準時開門掃藥妝零食，出示護照退稅",
-            q: "多慶屋 TAKEYA 1"
+            lat: 35.7073,
+            lng: 139.7750,
+            time: "10:00 - 11:20",
+            stay: "1 小時 20 分",
+            stepTip: "【避坑關鍵】09:30 APA 退房寄放大行李。10:00 準時進入多慶屋 2F/3F 藥妝館！兩人分工抓藥妝與零食，10:30 排 Tax-Free 免稅櫃檯，必須出示護照正本辦理退稅！",
+            transit: "從 APA 步行 7 分鐘抵達",
+            actionTip: "買完提戰利品回飯店拿大行李，11:45 走到京成上野站。"
           },
           {
-            time: "11:50 - 12:00",
             name: "京成上野站 (Skyliner)",
-            nameJp: "京成上野駅",
+            nameJp: "京成上野駅 (けいせいうえの)",
+            lat: 35.7118,
+            lng: 139.7741,
+            time: "11:50 - 12:00",
             stay: "搭車",
-            transit: "回飯店取行李，走 5 分鐘至車站",
-            tip: "搭乘 12:00 Skyliner（12:42 抵達二航，起飛前 2.5 小時最充裕）",
-            q: "京成上野站"
+            stepTip: "在藍色機台或人工售票處劃位，搭乘 12:00 Skyliner（12:42 抵達第二航廈，起飛前 2.5 小時最安全）！",
+            transit: "回飯店取行李後步行 5 分鐘抵達車站",
+            actionTip: "在車上放鬆休息 41 分鐘，準備抵達機場。"
           },
           {
-            time: "12:45 - 15:20",
-            name: "成田機場 第二航廈 3F",
+            name: "成田機場 第二航廈 3F 出發大廳",
             nameJp: "成田空港第2ターミナル 3F",
+            lat: 35.7730,
+            lng: 140.3878,
+            time: "12:45 - 15:20",
             stay: "登機手續",
-            transit: "出閘門手扶梯直上 3F 出發大廳",
-            tip: "JX803 櫃檯託運（看過X光） ➡️ 安檢 ➡️ 刷護照 ➡️ Fa-So-La 免稅店買白色戀人 ➡️ 14:50 登機",
-            q: "成田機場第2航廈"
+            stepTip: "【出境 5 步 SOP】\n1. 機場第2大樓站 B1 搭手扶梯直上 3F 大廳。\n2. 看電視牆星宇 JX803 櫃檯（常為 Q/R）出示護照託運行李（看螢幕過 X 光再走）。\n3. 過中央安檢（平板/行動電源放籃子、液體瓶全裝透明夾鏈袋）。\n4. 海關機台刷護照核對退稅 ➡️ 臉部辨識自動通關。\n5. 管制區 Fa-So-La 免稅店買伴手禮 ➡️ 14:50 登機門登機！",
+            transit: "出閘門手扶梯直達 3 樓出發大廳",
+            actionTip: "星宇 JX803 (15:20 - 18:00) 滿載戰利品返抵桃園第一航廈。"
           }
+        ],
+        shopping: [
+          { name: "合利他命 EX Plus 270錠", jpy: 5980, note: "多慶屋 2F 藥妝，滿 5,000 円出示護照免稅" },
+          { name: "大正百保能感冒微粒 / EVE 止痛藥", jpy: 2600, note: "家庭必備常備藥" },
+          { name: "白色戀人 / Royce 生巧克力", jpy: 3200, note: "成田 T2 管制區 Fa-So-La 免稅店直購免稅" }
         ]
       }
     };
 
-    let isExpanded = false;
+    // 初始化乾淨高對比 CartoDB 地圖
+    const map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd',
+      attribution: '© CartoDB'
+    }).addTo(map);
 
-    // 切換抽屜收合
-    function toggleDrawer() {
-      const drawer = document.getElementById('card-drawer');
-      const arrow = document.getElementById('drawer-arrow');
-      isExpanded = !isExpanded;
-      if (isExpanded) {
-        drawer.querySelector('#spots-list').classList.remove('max-h-[38vh]');
-        drawer.querySelector('#spots-list').classList.add('max-h-[65vh]');
-        arrow.innerText = '▼ 收合';
-      } else {
-        drawer.querySelector('#spots-list').classList.remove('max-h-[65vh]');
-        drawer.querySelector('#spots-list').classList.add('max-h-[38vh]');
-        arrow.innerText = '▲ 展開';
-      }
-    }
+    let markersLayer = L.featureGroup().addTo(map);
+    let routePolyline = null;
 
-    // 更新地圖視角
-    function focusMap(query) {
-      const iframe = document.getElementById('gmap-iframe');
-      // 使用 Google Maps 官方標準內嵌網址（原生、無雜訊、完全免費）
-      iframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-    }
-
-    // 切換日期
     function switchDay(dayKey) {
       // Tab 樣式切換
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.className = "tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-slate-800/90 text-slate-300 shadow border border-slate-700";
+        btn.className = "tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-semibold";
       });
-      const currentBtn = document.getElementById(`btn-${dayKey}`);
-      if (currentBtn) {
-        currentBtn.className = "tab-btn shrink-0 text-xs px-3 py-1 rounded-full font-bold bg-blue-600 text-white shadow";
+      const activeBtn = document.getElementById(`tab-${dayKey}`);
+      if (activeBtn) {
+        activeBtn.className = "tab-btn shrink-0 px-3 py-1 rounded-full bg-blue-600 text-white font-bold shadow";
       }
 
-      const data = itinerary[dayKey];
+      const data = travelData[dayKey];
+      document.getElementById('day-date').innerText = data.date;
       document.getElementById('day-title').innerText = data.title;
-      document.getElementById('drawer-status').innerText = `${data.title}（共 ${data.spots.length} 個點）`;
+      document.getElementById('header-title').innerText = `東京行・${data.title.split('・')[0]}`;
 
-      // 切換地圖中心
-      focusMap(data.centerQ);
+      // 清除舊圖釘與路徑連線
+      markersLayer.clearLayers();
+      if (routePolyline) map.removeLayer(routePolyline);
 
-      // 渲染列表
-      const listEl = document.getElementById('spots-list');
-      listEl.innerHTML = '';
+      const spotsListEl = document.getElementById('spots-list');
+      spotsListEl.innerHTML = '';
+      const latlngs = [];
 
       data.spots.forEach((spot, idx) => {
-        const card = document.createElement('div');
-        card.className = "p-2.5 bg-gray-50 hover:bg-blue-50/60 rounded-xl border border-gray-200 transition flex flex-col gap-1 cursor-pointer";
-        card.onclick = () => focusMap(spot.q);
+        latlngs.push([spot.lat, spot.lng]);
 
-        card.innerHTML = `
-          <div class="flex justify-between items-center">
-            <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">${spot.time}</span>
-            <span class="text-[10px] text-gray-400">停留 ${spot.stay}</span>
-          </div>
-          <div class="font-bold text-gray-900 text-sm mt-0.5">${idx + 1}. ${spot.name}</div>
-          <div class="text-[11px] text-gray-400 font-mono">${spot.nameJp}</div>
-          <div class="text-[11px] text-gray-600 mt-1 bg-white p-1.5 rounded border border-gray-100">
-            <div>🚇 <b>交通：</b>${spot.transit}</div>
-            <div class="text-amber-800 mt-0.5">💡 <b>備註：</b>${spot.tip}</div>
-          </div>
-          <div class="flex gap-2 mt-1">
-            <button onclick="event.stopPropagation(); focusMap('${spot.q}')" class="flex-1 py-1 bg-slate-100 text-slate-700 rounded font-semibold text-[11px] hover:bg-slate-200 text-center">
-              在地圖查看
-            </button>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.q)}" target="_blank" onclick="event.stopPropagation();" class="flex-1 py-1 bg-blue-600 text-white rounded font-semibold text-[11px] hover:bg-blue-700 text-center">
-              📍 App 導航
+        // 自訂亮色號碼地圖 Marker
+        const customIcon = L.divIcon({
+          className: 'custom-pin',
+          html: `<div style="background:#2563EB;color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 3px 6px rgba(0,0,0,0.4);">${idx + 1}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([spot.lat, spot.lng], { icon: customIcon }).addTo(markersLayer);
+        const popupContent = `
+          <div style="font-size:12px;min-width:190px;">
+            <b style="color:#1D4ED8;font-size:13px;">${idx + 1}. ${spot.name}</b><br>
+            <span style="color:#64748B;font-family:monospace;">${spot.nameJp}</span>
+            <div style="margin-top:4px;font-weight:bold;color:#0F172A;">⏱️ 停留：${spot.stay}</div>
+            <div style="margin-top:2px;color:#334155;background:#F1F5F9;padding:4px;border-radius:4px;font-size:11px;">
+              ${spot.stepTip.substring(0, 70)}...
+            </div>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" 
+               target="_blank" 
+               style="display:block;background:#2563EB;color:white;text-align:center;padding:6px 0;border-radius:6px;margin-top:6px;text-decoration:none;font-weight:bold;">
+               📍 Google Maps 導航
             </a>
           </div>
         `;
-        listEl.appendChild(card);
+        marker.bindPopup(popupContent);
+
+        // 下方行程卡片
+        const card = document.createElement('div');
+        card.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm cursor-pointer active:scale-[0.99] transition";
+        card.onclick = () => {
+          map.panTo([spot.lat, spot.lng]);
+          marker.openPopup();
+        };
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded border border-blue-100">${spot.time}</span>
+            <span class="text-[11px] text-slate-400 font-medium">預計待 ${spot.stay}</span>
+          </div>
+          <div class="mt-1 font-bold text-slate-900 text-sm">${idx + 1}. ${spot.name}</div>
+          <div class="text-[11px] text-slate-400 font-mono">${spot.nameJp}</div>
+
+          <!-- 重要操作 SOP 與轉乘提示 -->
+          <div class="mt-2 text-xs space-y-1.5">
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2 rounded-lg leading-relaxed">
+              <span class="font-bold">⚠️ 操作SOP：</span>${spot.stepTip.replace(/\n/g, '<br>')}
+            </div>
+            <div class="bg-slate-50 border border-slate-100 text-slate-600 p-2 rounded-lg">
+              <div>🚇 <b>交通：</b>${spot.transit}</div>
+              <div class="text-blue-700 mt-0.5">💡 <b>推薦：</b>${spot.actionTip}</div>
+            </div>
+          </div>
+
+          <div class="mt-2 flex justify-end">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" 
+               target="_blank" 
+               onclick="event.stopPropagation();"
+               class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
+               <span>📍</span> 開啟 Google Maps 路線導航
+            </a>
+          </div>
+        `;
+        spotsListEl.appendChild(card);
       });
+
+      // 核心功能：點和點之間自動畫出導航連線
+      if (latlngs.length > 1) {
+        routePolyline = L.polyline(latlngs, {
+          color: '#2563EB',
+          weight: 4,
+          opacity: 0.85,
+          dashArray: '6, 8',
+          lineCap: 'round'
+        }).addTo(map);
+      }
+
+      if (latlngs.length > 0) {
+        map.fitBounds(markersLayer.getBounds(), { padding: [40, 40] });
+      }
+
+      // 採買清單渲染
+      const shopCard = document.getElementById('shopping-card');
+      const shopEl = document.getElementById('shopping-list');
+      shopEl.innerHTML = '';
+
+      if (data.shopping.length === 0) {
+        shopCard.classList.add('hidden');
+      } else {
+        shopCard.classList.remove('hidden');
+        data.shopping.forEach(item => {
+          const twd = Math.round(item.jpy * 0.21);
+          const isTaxFree = item.jpy >= 5000;
+          const row = document.createElement('div');
+          row.className = "p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-col gap-1";
+          row.innerHTML = `
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-slate-800 text-xs">${item.name}</span>
+              <span class="text-emerald-700 font-mono text-xs">約 NT$ ${twd.toLocaleString()} <span class="text-slate-400 font-normal">(${item.jpy.toLocaleString()}円)</span></span>
+            </div>
+            <div class="flex justify-between items-center text-slate-500 text-[11px]">
+              <span>💡 ${item.note}</span>
+              ${isTaxFree ? '<span class="bg-red-50 text-red-600 border border-red-200 px-1.5 py-0.2 rounded text-[10px] font-bold">滿額免稅</span>' : ''}
+            </div>
+          `;
+          shopEl.appendChild(row);
+        });
+      }
     }
 
-    // 預設載入 Day 1
     window.onload = () => switchDay('day1');
   </script>
 </body>
