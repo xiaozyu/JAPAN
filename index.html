@@ -6,6 +6,7 @@
   <title>東京自由行導航助手</title>
   
   <!-- PWA 設定 -->
+  <link rel="manifest" href="./manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="東京行">
@@ -128,7 +129,6 @@
             <span class="font-mono text-purple-700 font-semibold">ID: 0013</span>
           </div>
           <div class="bg-slate-50 py-2 border rounded">
-            <!-- 內建 QR 產生器或顯示雲端對應圖片 -->
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=00396-2026-0927-8101-5140-0013" 
                  alt="QR 1" class="mx-auto w-36 h-36">
             <span class="text-[10px] text-slate-400 font-mono">00396-2026-0927-8101-5140-0013</span>
@@ -685,11 +685,17 @@
       }
     }
 
+    // 頁面載入完成後初始化
     window.addEventListener('load', () => {
       switchDay('day1');
       renderVjw();
       setTimeout(() => map.invalidateSize(), 300);
     });
+
+    // 註冊 Service Worker 啟用 PWA 安裝
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
   </script>
 </body>
 </html>
