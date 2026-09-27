@@ -27,6 +27,11 @@
     }
     .scroll-touch { -webkit-overflow-scrolling: touch; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
+    .ai-bubble {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body class="bg-slate-100 flex flex-col h-screen overflow-hidden text-slate-800 select-none">
@@ -41,10 +46,13 @@
       
       <!-- 右上角快捷按鈕群 -->
       <div class="flex items-center gap-1.5">
-        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
-          <span>📲 QR 憑證</span>
+        <button onclick="promptApiKey()" id="api-key-btn" class="flex items-center gap-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 font-bold px-2 py-1 rounded-full text-[11px] shadow transition">
+          <span>🔑 Key</span>
         </button>
-        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
+        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded-full text-[11px] shadow transition">
+          <span>📲 憑證</span>
+        </button>
+        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-1 rounded-full text-[11px] shadow transition">
           <span>💴 匯率</span>
         </button>
       </div>
@@ -86,6 +94,55 @@
     </div>
   </main>
 
+  <!-- 彈出式：Gemini AI 私人導遊抽屜 (Bottom Sheet) -->
+  <div id="ai-guide-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex flex-col justify-end hidden">
+    <div class="bg-white rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl border-t border-slate-200 animate-slide-up">
+      <!-- 頂部欄 -->
+      <div class="px-4 py-3 border-b flex justify-between items-center bg-slate-50 rounded-t-3xl shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">✨</span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900" id="ai-modal-spot-name">景點導遊</h3>
+            <span class="text-[10px] text-slate-500 font-mono" id="ai-modal-spot-jp"></span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleSpeech()" id="speech-btn" class="text-xs bg-slate-200 text-slate-700 font-bold px-2 py-1 rounded-full flex items-center gap-1">
+            <span>🔊 朗讀</span>
+          </button>
+          <button onclick="closeAiGuide()" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-1">✕</button>
+        </div>
+      </div>
+
+      <!-- 導覽解說內容滾動區 -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs text-slate-700 ai-bubble" id="ai-content-area">
+        <div id="ai-loading" class="flex flex-col items-center justify-center py-8 space-y-2 text-slate-400">
+          <div class="w-7 h-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-xs font-semibold">Gemini 導遊正在為您整理在地攻略...</span>
+        </div>
+        <div id="ai-response-text" class="hidden leading-relaxed"></div>
+      </div>
+
+      <!-- 快速追問按鈕列 -->
+      <div class="px-4 py-1.5 bg-slate-50 border-t flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[11px]">
+        <button onclick="quickAsk('這裡最推薦吃什麼？有什麼老饕必點點法？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 推薦吃什麼</button>
+        <button onclick="quickAsk('現場有什麼隱藏拍照角度或打卡技巧？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 哪裡好拍照</button>
+        <button onclick="quickAsk('這裡有什麼值得買？大約多少錢？怎麼退稅？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🛍️ 必買與退稅</button>
+        <button onclick="quickAsk('現場有什麼避坑重點或排隊規矩要遵守？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑規矩</button>
+      </div>
+
+      <!-- 自由提問對話框 -->
+      <div class="p-3 border-t bg-white flex gap-2 shrink-0 pb-safe">
+        <input type="text" id="ai-user-query" placeholder="想問導遊什麼？(如: 附近哪裡有洗手間)"
+               class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+               onkeydown="if(event.key==='Enter') submitCustomQuestion()">
+        <button onclick="submitCustomQuestion()" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 shadow">
+          發送
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 彈出式：QR Code / 電子憑證專區 Modal -->
   <div id="qr-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl p-4 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 space-y-4">
@@ -122,7 +179,6 @@
           <span class="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-bold">10/11 17:40~17:59</span>
         </div>
         
-        <!-- 票券 1 -->
         <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
           <div class="text-[11px] font-bold text-slate-800 flex justify-between">
             <span>票券 1 (陳政宇)</span>
@@ -135,7 +191,6 @@
           </div>
         </div>
 
-        <!-- 票券 2 -->
         <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
           <div class="text-[11px] font-bold text-slate-800 flex justify-between">
             <span>票券 2 (隨行人員)</span>
@@ -192,13 +247,144 @@
   </div>
 
   <script>
-    // QR Code Modal 開關
-    function toggleQrModal() {
-      const modal = document.getElementById('qr-modal');
-      modal.classList.toggle('hidden');
+    // API Key 儲存管理
+    let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
+
+    function checkApiKeyStatus() {
+      const btn = document.getElementById('api-key-btn');
+      if (GEMINI_API_KEY) {
+        btn.innerHTML = '<span>🔑 Key✓</span>';
+        btn.className = 'flex items-center gap-1 bg-emerald-800 border border-emerald-600 text-emerald-200 font-bold px-2 py-1 rounded-full text-[11px] shadow transition';
+      } else {
+        btn.innerHTML = '<span>🔑 設Key</span>';
+        btn.className = 'flex items-center gap-1 bg-rose-900 border border-rose-700 text-rose-200 font-bold px-2 py-1 rounded-full text-[11px] shadow transition';
+      }
     }
 
-    // Visit Japan Web 圖片上傳與 LocalStorage 存取
+    function promptApiKey() {
+      const key = prompt('請輸入 Google AI Studio 申請的 Gemini API Key (將安全保存在您的手機瀏覽器中)：', GEMINI_API_KEY);
+      if (key !== null) {
+        GEMINI_API_KEY = key.trim();
+        localStorage.setItem('gemini_api_key', GEMINI_API_KEY);
+        checkApiKeyStatus();
+        if (GEMINI_API_KEY) alert('API Key 設定成功！點擊景點旁的 ✨ AI 導遊 即可使用！');
+      }
+    }
+
+    // Gemini 導遊對話邏輯
+    let currentSpotContext = null;
+    let isSpeaking = false;
+
+    function openAiGuide(spot) {
+      if (!GEMINI_API_KEY) {
+        promptApiKey();
+        if (!GEMINI_API_KEY) return;
+      }
+
+      currentSpotContext = spot;
+      document.getElementById('ai-modal-spot-name').innerText = spot.name;
+      document.getElementById('ai-modal-spot-jp').innerText = spot.nameJp;
+      
+      const modal = document.getElementById('ai-guide-modal');
+      modal.classList.remove('hidden');
+
+      const initialPrompt = `你現在是隨行的專業東京私人導遊。我們現在來到了【${spot.name}】（${spot.nameJp}）。
+這是一個四天三夜自由行行程。請直接且生動地為我們介紹這個點的精華攻略，必須包含：
+1. 💡【現場必做與防呆SOP】：包含該找什麼櫃檯/機台顏色、置物櫃或交通進出細節。
+2. 🍽️【老饕吃法 / 必買物與價格】：如果是餐廳請推薦必吃品項與正確吃法；若是商圈請推薦必買神物、日幣/台幣大約價格及退稅注意。
+3. 📸【隱藏拍照角度】：教我們怎麼拍出不用人擠人的好看視角。
+4. 🏮【1個在地冷知識或禮節】：一句話趣味科普。
+請用繁體中文、排版條理清晰、口吻親切熱情、重點字加粗回答。`;
+
+      fetchGeminiGuide(initialPrompt);
+    }
+
+    function closeAiGuide() {
+      document.getElementById('ai-guide-modal').classList.add('hidden');
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      isSpeaking = false;
+      document.getElementById('speech-btn').innerText = '🔊 朗讀';
+    }
+
+    async function fetchGeminiGuide(promptText) {
+      const loading = document.getElementById('ai-loading');
+      const responseEl = document.getElementById('ai-response-text');
+      loading.classList.remove('hidden');
+      responseEl.classList.add('hidden');
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }]
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error.message || 'API 請求失敗');
+        }
+
+        const reply = data.candidates[0].content.parts[0].text;
+        responseEl.innerHTML = reply.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        loading.classList.add('hidden');
+        responseEl.classList.remove('hidden');
+      } catch (err) {
+        loading.classList.add('hidden');
+        responseEl.classList.remove('hidden');
+        responseEl.innerHTML = `<span class="text-rose-600 font-bold">抱歉，呼叫失敗：${err.message}。請確認右上角 Key 是否正確，或直接手動提問。</span>`;
+      }
+    }
+
+    function quickAsk(question) {
+      if (!currentSpotContext) return;
+      const fullPrompt = `針對我們目前在的景點【${currentSpotContext.name}】，${question}。請用繁體中文簡明扼要回答。`;
+      fetchGeminiGuide(fullPrompt);
+    }
+
+    function submitCustomQuestion() {
+      const input = document.getElementById('ai-user-query');
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = '';
+      quickAsk(val);
+    }
+
+    // 語音朗讀合成功能
+    function toggleSpeech() {
+      if (!window.speechSynthesis) {
+        alert('您的瀏覽器不支援語音朗讀功能');
+        return;
+      }
+
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        isSpeaking = false;
+        document.getElementById('speech-btn').innerText = '🔊 朗讀';
+      } else {
+        const textToRead = document.getElementById('ai-response-text').innerText;
+        if (!textToRead) return;
+
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        utterance.lang = 'zh-TW';
+        utterance.rate = 1.0;
+        utterance.onend = () => {
+          isSpeaking = false;
+          document.getElementById('speech-btn').innerText = '🔊 朗讀';
+        };
+        window.speechSynthesis.speak(utterance);
+        isSpeaking = true;
+        document.getElementById('speech-btn').innerText = '⏹️ 停止';
+      }
+    }
+
+    // QR Code Modal 開關
+    function toggleQrModal() {
+      document.getElementById('qr-modal').classList.toggle('hidden');
+    }
+
+    // Visit Japan Web 本地圖片存取
     function handleVjwUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -627,12 +813,16 @@
             </div>
           </div>
 
-          <div class="mt-2 flex justify-end">
+          <div class="mt-2.5 flex items-center justify-between gap-2 border-t pt-2">
+            <button onclick="event.stopPropagation(); openAiGuide(${JSON.stringify(spot).replace(/"/g, '&quot;')})" 
+                    class="flex items-center gap-1 text-[11px] font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg shadow hover:opacity-90 transition">
+              <span>✨</span> AI 導遊解說
+            </button>
             <a href="${navUrl}" 
                target="_blank" 
                onclick="event.stopPropagation();"
                class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
-               <span>📍</span> 開啟 Google Maps 路線導航
+               <span>📍</span> 路線導航
             </a>
           </div>
         `;
@@ -685,10 +875,11 @@
       }
     }
 
-    // 頁面載入完成後初始化
+    // 頁面初始化
     window.addEventListener('load', () => {
       switchDay('day1');
       renderVjw();
+      checkApiKeyStatus();
       setTimeout(() => map.invalidateSize(), 300);
     });
 
