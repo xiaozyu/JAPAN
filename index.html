@@ -85,7 +85,7 @@
     <!-- 行程景點清單 -->
     <div class="space-y-2.5" id="spots-list"></div>
 
-    <!-- 購物清單區塊（大擴充版） -->
+    <!-- 購物清單區塊 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200" id="shopping-card">
       <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
         <span class="flex items-center gap-1.5">🛍️ 本日推薦必買清單 & 預算參考</span>
@@ -119,24 +119,24 @@
       <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs text-slate-700 ai-bubble" id="ai-content-area">
         <div id="ai-loading" class="flex flex-col items-center justify-center py-8 space-y-2 text-slate-400">
           <div class="w-7 h-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span class="text-xs font-semibold">Gemini 導遊正在整理在地內行攻略...</span>
+          <span class="text-xs font-semibold">Gemini 導遊正在為你們整理內行攻略...</span>
         </div>
         <div id="ai-response-text" class="hidden leading-relaxed"></div>
       </div>
 
-      <!-- 快速追問按鈕列（擴充胃口與更換餐點） -->
+      <!-- 快速追問按鈕列（雙人視角） -->
       <div class="px-4 py-1.5 bg-slate-50 border-t flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[11px]">
-        <button onclick="quickAsk('這裡最推薦吃什麼？菜單招牌是哪道？怎麼點最內行？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 老饕點法</button>
-        <button onclick="quickAsk('如果我們現在不太餓，只想吃點小東西或甜點，附近推薦吃什麼？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍵 不太餓吃什麼</button>
-        <button onclick="quickAsk('如果肚子很餓，這附近有什麼大份量平替美食推薦？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍜 很餓換吃什麼</button>
-        <button onclick="quickAsk('現場拍照女友哪個視角顯瘦最好看？相機怎麼拿？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 拍照出片</button>
+        <button onclick="quickAsk('這裡最推薦我們兩人點什麼吃？菜單招牌是什麼？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 老饕雙人點法</button>
+        <button onclick="quickAsk('如果我們現在不太餓，只想吃點小點心或喝咖啡，附近推薦去哪？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍵 不太餓吃什麼</button>
+        <button onclick="quickAsk('如果肚子很餓，這附近有什麼大份量美食推薦？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍜 很餓換吃什麼</button>
+        <button onclick="quickAsk('這裡推薦怎麼拍我們兩人的情侶合照？教我們站位和角度！')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 雙人情侶合照</button>
         <button onclick="quickAsk('這裡有什麼值得買？大約多少錢？怎麼退稅？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🛍️ 必買與退稅</button>
         <button onclick="quickAsk('現場有什麼避坑重點或排隊規矩要遵守？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑規矩</button>
       </div>
 
       <!-- 自由提問對話框 -->
       <div class="p-3 border-t bg-white flex gap-2 shrink-0 pb-safe">
-        <input type="text" id="ai-user-query" placeholder="隨時跟導遊說你想吃什麼、餓不餓或找廁所..."
+        <input type="text" id="ai-user-query" placeholder="隨時跟導遊說你們想吃什麼、餓不餓或找洗手間..."
                class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
                onkeydown="if(event.key==='Enter') submitCustomQuestion()">
         <button onclick="submitCustomQuestion()" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 shadow">
@@ -270,38 +270,39 @@
         GEMINI_API_KEY = key.trim();
         localStorage.setItem('gemini_api_key', GEMINI_API_KEY);
         checkApiKeyStatus();
-        if (GEMINI_API_KEY) alert('API Key 設定完成！已啟用個人化行程導遊！');
+        if (GEMINI_API_KEY) alert('API Key 設定完成！已啟用雙人專屬行程導遊！');
       }
     }
 
-    // 核心注入：讓 Gemini 完整知曉行程、菜單老饕點法、女友生日與即時調食慾的 System Prompt
+    // 核心注入：雙人視角、情侶合照、彈性食慾與生日彩蛋
     const SYSTEM_TRAVEL_KNOWLEDGE = `
-你現在是兩位旅客（男主角政宇與女友）在東京 4 天 3 夜（2026/10/09~10/12）的隨身專屬頂級情侶私人導遊。
-核心旅行風格：側重吃吃喝喝、拍照出片、逛街掃貨、隨興彈性。
+你現在是兩位旅客（情侶檔，兩人會一起看這個 App 提問）在東京 4 天 3 夜（2026/10/09~10/12）的隨身專屬頂級情侶私人導遊。
+核心風格：吃吃喝喝、買買逛逛、輕鬆放鬆、情侶合照打卡。
 
 【關鍵核心設定】
-1. 10/12 是女友的生日！當回答 10/12 (D4) 行程時，化身頂級神隊友，開頭祝她生日快樂，並特別指引成田機場/免稅店最適合驚喜慶生或買生日禮物的點子。
-2. 回答風格：
+1. 視角設定：請以「你們兩位」為對象回答（稱呼「你們」或「兩位」），推薦餐點以兩人分食、嚐鮮多樣化為主。
+2. 拍照指導：比起單獨照，他們更喜歡「兩人一起拍合照」！請具體指導情侶自拍角度、手機擺放位置、或請路人拍照時的站位構圖；偶爾也可提點男生如何把女友拍顯瘦好看。
+3. 10/12 是女友的生日！回答 10/12 (D4) 行程時，化身頂級神隊友，開頭祝她生日快樂，並指引成田機場/免稅店最適合驚喜慶生或買生日禮物的點子。
+4. 回答風格：
    - 拒絕冗長客套與廢話，拒絕大眾罐頭清單。
    - 開頭允許一句極短、有情緒價值或幽默的導遊短語（破題帶動好心情）。
    - 內文必須極度精簡、條理化，直接給出核心品項、數據、日圓(JPY)與換算台幣(約0.21)。
    - 若有專業術語或特殊規矩，用 1 句話簡易生活邏輯解釋。
 
-【精準餐廳菜單知識庫】
+【精準餐廳菜單與食慾彈性庫】
 - D1 19:00 蟹道樂 上野店（永藤大樓 8F）：
-  * 招牌首選：看板料理「神楽 かぐら」（約 8,250 円 / NT$ 1,733），包含水煮蟹、蟹刺身、招牌蟹肉火鍋、特製蛋花雜炊稀飯與甜點。
-  * 奢華套餐：「満月 まんげつ」（約 13,200 円 / NT$ 2,772），多烤蟹腳、蟹天婦羅、螃蟹釜飯。
+  * 招牌推薦：看板料理「神楽 かぐら」（約 8,250 円 / NT$ 1,733），含水煮蟹、蟹刺身、招牌蟹肉火鍋、特製蛋花雜炊稀飯與甜點。
   * 老饕吃法：釜飯煮好先別全吃完，留 1/3 淋上附的熱螃蟹高湯與芥末做「茶泡飯」；火鍋吃完請店員現場加生蛋煮「蟹黃雜炊」。
 - D2 18:30 一頭牛燒肉 房家 上野六丁目店：
-  * 招牌必點：房家名物「絕對盛」（300g 約 2,728 円 / NT$ 573），一次吃到整頭黑毛和牛購入的 4~5 種稀少赤身與霜降部位。
-  * 必配附餐：盛岡手打冷麵（酸甜解膩）、生蛋拌生牛肉（ユッケ）、生啤酒。
-- 當旅客說「不太餓/胃口小」時：主動推薦當前景點步行 3 分鐘內的名物甜點、咖啡或輕食（如花月堂菠蘿麵包、HARBS千層蛋糕、便利商店炸雞布丁）。
-- 當旅客說「肚子很餓」時：主動推薦附近老饕排隊拉麵、炭火牛舌、炸牛排或居酒屋。
+  * 必點招牌：房家名物「絕對盛」（300g 約 2,728 円 / NT$ 573），一次吃到整頭黑毛和牛的 4~5 種稀少赤身與霜降部位。
+  * 必配附餐：盛岡手打冷麵、生蛋拌生牛肉（ユッケ）、生啤酒。
+- 當兩人說「不太餓/胃口小」時：主動推薦當前景點步行 3 分鐘內的名物甜點、咖啡或輕食（如花月堂菠蘿麵包、HARBS千層蛋糕、便利商店炸雞布丁）。
+- 當兩人說「肚子很餓」時：主動推薦附近老饕排隊拉麵、炭火牛舌、炸牛排或居酒屋。
 
 【固定輸出結構】
 - 🎙️ 導遊開場：（15字以內幽默或氛圍破題）
-- 🍽️ 老饕吃法 / 推薦必買：（直接列 1~2 款招牌名物 + JPY金額/NT金額 + 推薦點法）
-- 📸 女友出片視角：（具體說明站哪裡拍、相機角度/焦段，保證拍出神照）
+- 🍽️ 老饕雙人點法 / 必買物：（直接列 1~2 款招牌名物 + JPY金額/NT金額 + 兩人分食點法）
+- 📸 情侶合照出片技巧：（具體說明兩人怎麼站、自拍棒角度或請路人幫拍的構圖）
 - 💡 現場避坑SOP：（機台/排隊/置物櫃/退稅/洗手間極短指令）
 - 🧭 下一站動線：（走幾分鐘，或搭 Metro 哪條線，提醒 72hr 券是否可用）
 `;
@@ -322,8 +323,8 @@
       const modal = document.getElementById('ai-guide-modal');
       modal.classList.remove('hidden');
 
-      const initialPrompt = `我們現在行程來到【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
-請結合我們的完整行程安排與交通憑證，為我們做一段生動且精簡的隨身導覽（包含老饕點法、女友拍照視角、避坑SOP與下一站動線）。`;
+      const initialPrompt = `我們兩個人現在行程來到【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
+請結合我們的完整行程安排與交通憑證，為我們兩人做一段生動且精簡的隨身導覽（包含雙人點法、情侶拍照視角、避坑SOP與下一站動線）。`;
 
       fetchGeminiGuide(initialPrompt);
     }
@@ -393,7 +394,7 @@
 
     function quickAsk(question) {
       if (!currentSpotContext) return;
-      const fullPrompt = `我們現在在行程景點【${currentSpotContext.name}】（${currentSpotContext.nameJp}）。${question}。請結合我們行程回答。`;
+      const fullPrompt = `我們兩個人現在在行程景點【${currentSpotContext.name}】（${currentSpotContext.nameJp}）。${question}。請結合我們兩人行程回答。`;
       fetchGeminiGuide(fullPrompt);
     }
 
@@ -505,7 +506,7 @@
       }
     }
 
-    // 完整 5 天行程資料庫（包含全天擴充必買清單）
+    // 完整 5 天行程資料庫（雙人擴充版必買清單）
     const travelData = {
       day0: {
         date: "10/08 (週四)",
