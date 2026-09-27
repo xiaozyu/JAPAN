@@ -85,10 +85,11 @@
     <!-- 行程景點清單 -->
     <div class="space-y-2.5" id="spots-list"></div>
 
-    <!-- 購物清單區塊 -->
+    <!-- 購物清單區塊（大擴充版） -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200" id="shopping-card">
-      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-        <span>🛍️</span> 本日推薦必買 & 退稅注意事項
+      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+        <span class="flex items-center gap-1.5">🛍️ 本日推薦必買清單 & 預算參考</span>
+        <span class="text-[10px] text-slate-400 font-normal">滿5,000円免稅</span>
       </h3>
       <div class="space-y-2 text-xs" id="shopping-list"></div>
     </div>
@@ -118,23 +119,24 @@
       <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs text-slate-700 ai-bubble" id="ai-content-area">
         <div id="ai-loading" class="flex flex-col items-center justify-center py-8 space-y-2 text-slate-400">
           <div class="w-7 h-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span class="text-xs font-semibold">Gemini 導遊正在結合您的完整行程分析攻略...</span>
+          <span class="text-xs font-semibold">Gemini 導遊正在整理在地內行攻略...</span>
         </div>
         <div id="ai-response-text" class="hidden leading-relaxed"></div>
       </div>
 
-      <!-- 快速追問按鈕列 -->
+      <!-- 快速追問按鈕列（擴充胃口與更換餐點） -->
       <div class="px-4 py-1.5 bg-slate-50 border-t flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[11px]">
-        <button onclick="quickAsk('這裡最推薦吃什麼？有什麼老饕必點點法？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 推薦吃什麼</button>
-        <button onclick="quickAsk('我們下一站要去哪？這一段該怎麼搭車或走路？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🧭 下一站怎麼走</button>
-        <button onclick="quickAsk('現場有什麼隱藏拍照角度或打卡技巧？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 哪裡好拍照</button>
+        <button onclick="quickAsk('這裡最推薦吃什麼？菜單招牌是哪道？怎麼點最內行？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 老饕點法</button>
+        <button onclick="quickAsk('如果我們現在不太餓，只想吃點小東西或甜點，附近推薦吃什麼？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍵 不太餓吃什麼</button>
+        <button onclick="quickAsk('如果肚子很餓，這附近有什麼大份量平替美食推薦？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍜 很餓換吃什麼</button>
+        <button onclick="quickAsk('現場拍照女友哪個視角顯瘦最好看？相機怎麼拿？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 拍照出片</button>
         <button onclick="quickAsk('這裡有什麼值得買？大約多少錢？怎麼退稅？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🛍️ 必買與退稅</button>
         <button onclick="quickAsk('現場有什麼避坑重點或排隊規矩要遵守？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑規矩</button>
       </div>
 
       <!-- 自由提問對話框 -->
       <div class="p-3 border-t bg-white flex gap-2 shrink-0 pb-safe">
-        <input type="text" id="ai-user-query" placeholder="想問導遊什麼？(如: 待會走去哪搭地鐵)"
+        <input type="text" id="ai-user-query" placeholder="隨時跟導遊說你想吃什麼、餓不餓或找廁所..."
                class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
                onkeydown="if(event.key==='Enter') submitCustomQuestion()">
         <button onclick="submitCustomQuestion()" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 shadow">
@@ -248,7 +250,7 @@
   </div>
 
   <script>
-    // 金鑰管理
+    // 金鑰管理：純本地 LocalStorage 存取
     let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
 
     function checkApiKeyStatus() {
@@ -272,30 +274,36 @@
       }
     }
 
-    // 核心注入：讓 Gemini 完整知曉行程全貌的 System Prompt
+    // 核心注入：讓 Gemini 完整知曉行程、菜單老饕點法、女友生日與即時調食慾的 System Prompt
     const SYSTEM_TRAVEL_KNOWLEDGE = `
-你現在是兩位旅客（陳政宇與隨行旅伴）在東京 4 天 3 夜（2026/10/09~10/12）的隨身專屬頂級私人導遊。
-你已經完整掌握他們的所有行程、機票、飯店、預約餐廳與交通票券，必須以此為基準回答，不能給出與行程矛盾的建議：
+你現在是兩位旅客（男主角政宇與女友）在東京 4 天 3 夜（2026/10/09~10/12）的隨身專屬頂級情侶私人導遊。
+核心旅行風格：側重吃吃喝喝、拍照出片、逛街掃貨、隨興彈性。
 
-【整體行程背景】
-- 機票：去程星宇航空 JX800 (10/09 08:30 TPE 桃園一航 -> 12:45 NRT 成田二航)；回程星宇航空 JX803 (10/12 15:20 NRT 成田二航 -> 18:00 TPE)。
-- 住宿：D0 前宿桃園藍水輕旅（已預約 05:00~05:30 桃機接駁）；D1~D3 全住 APA Hotel Ueno Ekiminami（アパホテル〈上野駅南〉）。
-- 交通憑證政策：
-  1. 機場往返：京成電鐵 Skyliner（成田B1藍色售票機換票，直達京成上野41分鐘）。
-  2. 市區交通：已購 Tokyo Subway Ticket 72小時地鐵券。只能搭「圓圈包英文字母」的東京地下鐵 Metro 與都營地下鐵！絕對不能刷 JR（如山手線綠色方框JY）或私鐵，否則會被擋。
-  3. 應急與超商：備有手機 Suica（西瓜卡），搭乘短程 JR 或買販賣機/超商使用。
+【關鍵核心設定】
+1. 10/12 是女友的生日！當回答 10/12 (D4) 行程時，化身頂級神隊友，開頭祝她生日快樂，並特別指引成田機場/免稅店最適合驚喜慶生或買生日禮物的點子。
+2. 回答風格：
+   - 拒絕冗長客套與廢話，拒絕大眾罐頭清單。
+   - 開頭允許一句極短、有情緒價值或幽默的導遊短語（破題帶動好心情）。
+   - 內文必須極度精簡、條理化，直接給出核心品項、數據、日圓(JPY)與換算台幣(約0.21)。
+   - 若有專業術語或特殊規矩，用 1 句話簡易生活邏輯解釋。
 
-【每日精確動線與預約細節】
-- D0 (10/08): 抵達藍水輕旅，確認明晨送機。
-- D1 (10/09): 桃機出境 -> 成田 T2 Skyliner (12:40) -> 京成上野 -> APA 上野站南 Check-in -> 散步至秋葉原 Radio會館（模型公仔） -> 友都八喜Akiba（電器免稅） -> 二木之菓子（阿美橫町零食免稅） -> 回飯店放戰利品 -> 19:00 已預約【蟹道樂 上野店 (永藤大樓8F)】（步行350m即達，不要走去車站）。
-- D2 (10/10): 上野搭 G銀座線 -> 淺草寺雷門（花月堂波蘿麵包、抽籤） -> 搭車至押上 -> 墨田水族館（企鵝、水母）/晴空塔 Solamachi -> 18:30 已定案【一頭牛燒肉 房家 上野六丁目店】（黑毛和牛盛合） -> 回 APA 休息。
-- D3 (10/11): 純喫茶 丘（昭和風早餐） -> G線轉C千代田線至明治神宮（碎石林道走兩邊壓平處） -> 原宿竹下通 -> 漫步至澀谷 -> 17:40~17:59 已預約【SHIBUYA SKY 展望台】（14F入場，背包鎖46F） -> 鳥貴族 澀谷文化村通店（居酒屋串燒） -> 搭銀座線回上野。
-- D4 (10/12): 09:30 退房寄行李 -> 10:00 多慶屋 TAKEYA 1 藥妝掃貨免稅 -> 回 APA 拿大行李 -> 12:00 京成上野 Skyliner -> 12:45 抵達成田 T2 辦理星宇 JX803 報到/免稅店/返台。
+【精準餐廳菜單知識庫】
+- D1 19:00 蟹道樂 上野店（永藤大樓 8F）：
+  * 招牌首選：看板料理「神楽 かぐら」（約 8,250 円 / NT$ 1,733），包含水煮蟹、蟹刺身、招牌蟹肉火鍋、特製蛋花雜炊稀飯與甜點。
+  * 奢華套餐：「満月 まんげつ」（約 13,200 円 / NT$ 2,772），多烤蟹腳、蟹天婦羅、螃蟹釜飯。
+  * 老饕吃法：釜飯煮好先別全吃完，留 1/3 淋上附的熱螃蟹高湯與芥末做「茶泡飯」；火鍋吃完請店員現場加生蛋煮「蟹黃雜炊」。
+- D2 18:30 一頭牛燒肉 房家 上野六丁目店：
+  * 招牌必點：房家名物「絕對盛」（300g 約 2,728 円 / NT$ 573），一次吃到整頭黑毛和牛購入的 4~5 種稀少赤身與霜降部位。
+  * 必配附餐：盛岡手打冷麵（酸甜解膩）、生蛋拌生牛肉（ユッケ）、生啤酒。
+- 當旅客說「不太餓/胃口小」時：主動推薦當前景點步行 3 分鐘內的名物甜點、咖啡或輕食（如花月堂菠蘿麵包、HARBS千層蛋糕、便利商店炸雞布丁）。
+- 當旅客說「肚子很餓」時：主動推薦附近老饕排隊拉麵、炭火牛舌、炸牛排或居酒屋。
 
-【回答方針】
-1. 語氣熱情、生動、專業，排版條理分明，重點加粗。
-2. 緊扣他們的具體前後行程：例如當旅客在「二木之菓子」時，主動提醒採買完先花 3 分鐘拿回 APA 房間放，再輕鬆前往 19:00 的蟹道樂。
-3. 具體指出價格（日幣與換算台幣）、推薦點法、拍照角度與現場避坑事項。
+【固定輸出結構】
+- 🎙️ 導遊開場：（15字以內幽默或氛圍破題）
+- 🍽️ 老饕吃法 / 推薦必買：（直接列 1~2 款招牌名物 + JPY金額/NT金額 + 推薦點法）
+- 📸 女友出片視角：（具體說明站哪裡拍、相機角度/焦段，保證拍出神照）
+- 💡 現場避坑SOP：（機台/排隊/置物櫃/退稅/洗手間極短指令）
+- 🧭 下一站動線：（走幾分鐘，或搭 Metro 哪條線，提醒 72hr 券是否可用）
 `;
 
     let currentSpotContext = null;
@@ -315,11 +323,7 @@
       modal.classList.remove('hidden');
 
       const initialPrompt = `我們現在行程來到【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
-請結合我們的完整行程安排與交通憑證，為我們做一段生動的隨身導覽：
-1. 💡【現場防呆與操作SOP】：現場該找什麼櫃檯、機台顏色、進出動線或置物櫃注意事項。
-2. 🍽️【老饕吃法 / 推薦必買與價格】：推薦這裡最內行的必吃必買（附日幣與約略台幣）、退稅方式。
-3. 🧭【行程前後串接】：告訴我們接下來下一站要去哪裡，如何搭乘地鐵（提醒能否刷 72 小時券）或散步。
-4. 📸【私房拍照點 & 避坑冷知識】：一個好看視角與一個現場規矩。`;
+請結合我們的完整行程安排與交通憑證，為我們做一段生動且精簡的隨身導覽（包含老饕點法、女友拍照視角、避坑SOP與下一站動線）。`;
 
       fetchGeminiGuide(initialPrompt);
     }
@@ -501,7 +505,7 @@
       }
     }
 
-    // 完整 5 天行程資料庫
+    // 完整 5 天行程資料庫（包含全天擴充必買清單）
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -607,13 +611,15 @@
             stay: "2 小時",
             stepTip: "【精準位置】位於中央通上的「永藤大樓 8F」，從飯店走過來僅 350m（約 4 分鐘），【千萬不要走到京成上野車站】！已預約 19:00，出示訂位人姓名入座。",
             transit: "從 APA 飯店沿鐵路側往北走過涵洞即達，步行約 4 分鐘",
-            actionTip: "享用精緻螃蟹刺身、烤蟹肉、螃蟹火鍋與釜飯，吃完散步回飯店休息。",
+            actionTip: "招牌神樂套餐（約8,250円）或滿月會席（約13,200円），享受火鍋蛋花雜炊與烤蟹！",
             navQuery: "かに道楽 上野店"
           }
         ],
         shopping: [
-          { name: "二木之菓子 日本限定零食/米果", jpy: 5500, note: "滿 5,000 円免稅，需出示護照正本，密封袋境內勿拆" },
-          { name: "日東紅茶奶茶包 / 辻利抹茶粉", jpy: 1200, note: "辦公室與家庭沖泡首選" }
+          { name: "二木之菓子 日本限定零食/米果綜合包", jpy: 5500, note: "阿美橫町第一營業所，滿5,000円出示護照免稅" },
+          { name: "日東紅茶皇家奶茶包 / 辻利抹茶粉", jpy: 1200, note: "辦公室與家庭沖泡必搶名物" },
+          { name: "磯燒干貝糖 (大包裝)", jpy: 2800, note: "二木之菓子下酒神物，送禮自用兩相宜" },
+          { name: "Panasonic / 吹風機或保溫瓶", jpy: 16800, note: "友都八喜 Akiba 專屬免稅櫃檯現省 10%" }
         ]
       },
       day2: {
@@ -653,13 +659,15 @@
             stay: "2 小時",
             stepTip: "17:30 押上站搭【紫色圓圈 Z (半藏門線)】至三越前站轉【橘色圓圈 G (銀座線)】回上野。房家在阿美橫町旁，店員引導炭火現烤。",
             transit: "地鐵回上野約 20 分鐘，出站步行 3 分鐘",
-            actionTip: "已定案！專營整頭黑毛和牛購入，推薦盛合牛肉拼盤，吃飽走 3 分鐘回 APA 飯店休息。",
+            actionTip: "必點房家名物「絕對盛」（300g 約2,728円），搭配盛岡手打冷麵與生啤酒！",
             navQuery: "一頭牛焼肉 房家 上野六丁目店"
           }
         ],
         shopping: [
-          { name: "晴空塔限定香蕉蛋糕 Tokyo Banana", jpy: 1600, note: "豹紋/特定限定圖案" },
-          { name: "水族館企鵝玩偶周邊", jpy: 2200, note: "精緻紀念品" }
+          { name: "花月堂 元祖波蘿麵包 (2個)", jpy: 560, note: "淺草寺本堂左側，外酥內軟，剛出爐現吃" },
+          { name: "晴空塔限定版香蕉蛋糕 Tokyo Banana", jpy: 1600, note: "晴空塔 Solamachi 1F/4F 限定豹紋包裝" },
+          { name: "墨田水族館 企鵝抱枕/水母夜燈", jpy: 2400, note: "水族館出口紀念品店，質感極佳" },
+          { name: "祇園辻利 晴空塔限定抹茶霜淇淋", jpy: 680, note: "Solamachi 6F 濃厚系抹茶名店" }
         ]
       },
       day3: {
@@ -728,12 +736,15 @@
           }
         ],
         shopping: [
-          { name: "明治神宮 祈福御守", jpy: 1000, note: "神社境內無免稅，自用或送長輩保平安" }
+          { name: "明治神宮 幸福開運御守 / 結緣守", jpy: 1000, note: "本殿旁神札所，送長輩或情侶保平安" },
+          { name: "SHIBUYA SKY 限定晴雨傘/夜景明信片", jpy: 1800, note: "46F 紀念品店，展望台獨賣" },
+          { name: "原宿竹下通 Marion 可麗餅", jpy: 650, note: "草莓鮮奶油經典款，邊走邊吃" },
+          { name: "澀谷 SCRAMBLE SQUARE 專櫃香氛/彩妝", jpy: 6800, note: "百貨退稅櫃檯可合併辦理免稅" }
         ]
       },
       day4: {
         date: "10/12 (週一)",
-        title: "多慶屋掃貨・Skyliner・成田 T2 SOP 返台",
+        title: "多慶屋掃貨・Skyliner・成田 T2 SOP 返台 (🎂女友生日)",
         spots: [
           {
             name: "多慶屋 TAKEYA 1",
@@ -773,9 +784,11 @@
           }
         ],
         shopping: [
-          { name: "合利他命 EX Plus 270錠", jpy: 5980, note: "多慶屋 2F 藥妝，滿 5,000 円出示護照免稅" },
-          { name: "大正百保能感冒微粒 / EVE 止痛藥", jpy: 2600, note: "家庭必備常備藥" },
-          { name: "白色戀人 / Royce 生巧克力", jpy: 3200, note: "成田 T2 管制區 Fa-So-La 免稅店直購免稅" }
+          { name: "合利他命 EX Plus 270錠 (強效維他命)", jpy: 5980, note: "多慶屋 2F 藥妝必備，滿 5,000 円出示護照免稅" },
+          { name: "大正百保能感冒微粒 (44包)", jpy: 1480, note: "多慶屋家庭常備藥，每人限購數量依現場為主" },
+          { name: "EVE QUICK 止痛藥 (40錠)", jpy: 1180, note: "藍色包裝，頭痛經痛必囤神藥" },
+          { name: "🎂 生日驚喜：Royce 生巧克力 / 白色戀人", jpy: 3200, note: "成田 T2 管制區 Fa-So-La 免稅店，機上慶生甜點" },
+          { name: "成田機場限定 獺祭純米大吟釀 二割三分", jpy: 5800, note: "管制區免稅直購免手提行李限制" }
         ]
       }
     };
