@@ -68,12 +68,11 @@
     </div>
   </header>
 
-  <!-- 上半部：穩定圖資地圖（含順向路線連線） -->
+  <!-- 上半部：穩定圖資地圖 -->
   <div id="map"></div>
 
   <!-- 下半部：滾動行程卡片與採買清單 -->
   <main class="flex-1 overflow-y-auto scroll-touch p-3 space-y-3 z-10 bg-slate-100 pb-16">
-    <!-- 今日核心概覽 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center">
         <span class="text-[11px] text-blue-600 font-bold uppercase" id="day-date"></span>
@@ -95,10 +94,9 @@
     </div>
   </main>
 
-  <!-- 彈出式：Gemini AI 私人導遊抽屜 (Bottom Sheet) -->
+  <!-- 彈出式：Gemini AI 私人導遊抽屜 -->
   <div id="ai-guide-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex flex-col justify-end hidden">
     <div class="bg-white rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl border-t border-slate-200">
-      <!-- 頂部欄 -->
       <div class="px-4 py-3 border-b flex justify-between items-center bg-slate-50 rounded-t-3xl shrink-0">
         <div class="flex items-center gap-2">
           <span class="text-lg">✨</span>
@@ -115,28 +113,26 @@
         </div>
       </div>
 
-      <!-- 導覽解說內容滾動區 -->
       <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs text-slate-700 ai-bubble" id="ai-content-area">
         <div id="ai-loading" class="flex flex-col items-center justify-center py-8 space-y-2 text-slate-400">
           <div class="w-7 h-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span class="text-xs font-semibold">Gemini 導遊正在為你們整理內行攻略...</span>
+          <span class="text-xs font-semibold" id="ai-loading-text">Gemini 正在為兩位提取精確攻略與避坑 SOP...</span>
         </div>
         <div id="ai-response-text" class="hidden leading-relaxed"></div>
       </div>
 
-      <!-- 快速追問按鈕列（雙人視角） -->
+      <!-- 快速追問按鈕列 -->
       <div class="px-4 py-1.5 bg-slate-50 border-t flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[11px]">
         <button onclick="quickAsk('這裡最推薦我們兩人點什麼吃？菜單招牌是什麼？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 老饕雙人點法</button>
+        <button onclick="quickAsk('現場有什麼容易踩雷的細節、排隊或退稅避坑 SOP？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑重點細節</button>
+        <button onclick="quickAsk('這裡推薦怎麼拍我們兩人的情侶合照？教我們站位和角度！')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 雙人情侶合照</button>
         <button onclick="quickAsk('如果我們現在不太餓，只想吃點小點心或喝咖啡，附近推薦去哪？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍵 不太餓吃什麼</button>
         <button onclick="quickAsk('如果肚子很餓，這附近有什麼大份量美食推薦？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍜 很餓換吃什麼</button>
-        <button onclick="quickAsk('這裡推薦怎麼拍我們兩人的情侶合照？教我們站位和角度！')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 雙人情侶合照</button>
-        <button onclick="quickAsk('這裡有什麼值得買？大約多少錢？怎麼退稅？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🛍️ 必買與退稅</button>
-        <button onclick="quickAsk('現場有什麼避坑重點或排隊規矩要遵守？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑規矩</button>
       </div>
 
       <!-- 自由提問對話框 -->
       <div class="p-3 border-t bg-white flex gap-2 shrink-0 pb-safe">
-        <input type="text" id="ai-user-query" placeholder="隨時跟導遊說你們想吃什麼、餓不餓或找洗手間..."
+        <input type="text" id="ai-user-query" placeholder="想問導遊什麼？(如: 這附近哪裡有洗手間、退稅櫃檯幾樓)"
                class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
                onkeydown="if(event.key==='Enter') submitCustomQuestion()">
         <button onclick="submitCustomQuestion()" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 shadow">
@@ -156,7 +152,6 @@
         <button onclick="toggleQrModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl leading-none">✕</button>
       </div>
 
-      <!-- Visit Japan Web 區塊 -->
       <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-blue-900">🇯🇵 Visit Japan Web (入境QR)</span>
@@ -175,7 +170,6 @@
         </label>
       </div>
 
-      <!-- SHIBUYA SKY 憑證區塊 -->
       <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-3">
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-purple-900">🎫 SHIBUYA SKY 門票 (大人×2)</span>
@@ -250,7 +244,6 @@
   </div>
 
   <script>
-    // 金鑰管理：純本地 LocalStorage 存取
     let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
 
     function checkApiKeyStatus() {
@@ -270,41 +263,26 @@
         GEMINI_API_KEY = key.trim();
         localStorage.setItem('gemini_api_key', GEMINI_API_KEY);
         checkApiKeyStatus();
-        if (GEMINI_API_KEY) alert('API Key 設定完成！已啟用雙人專屬行程導遊！');
+        if (GEMINI_API_KEY) alert('API Key 設定完成！');
       }
     }
 
-    // 核心注入：雙人視角、情侶合照、彈性食慾與生日彩蛋
+    // 核心系統指令：拒絕客套廢話、大篇幅強化現場避坑 SOP
     const SYSTEM_TRAVEL_KNOWLEDGE = `
-你現在是兩位旅客（情侶檔，兩人會一起看這個 App 提問）在東京 4 天 3 夜（2026/10/09~10/12）的隨身專屬頂級情侶私人導遊。
-核心風格：吃吃喝喝、買買逛逛、輕鬆放鬆、情侶合照打卡。
+你現在是兩位旅客（情侶同行）在東京 4 天 3 夜（2026/10/09~10/12）的隨身硬核在地導遊。
 
-【關鍵核心設定】
-1. 視角設定：請以「你們兩位」為對象回答（稱呼「你們」或「兩位」），推薦餐點以兩人分食、嚐鮮多樣化為主。
-2. 拍照指導：比起單獨照，他們更喜歡「兩人一起拍合照」！請具體指導情侶自拍角度、手機擺放位置、或請路人拍照時的站位構圖；偶爾也可提點男生如何把女友拍顯瘦好看。
-3. 10/12 是女友的生日！回答 10/12 (D4) 行程時，化身頂級神隊友，開頭祝她生日快樂，並指引成田機場/免稅店最適合驚喜慶生或買生日禮物的點子。
-4. 回答風格：
-   - 拒絕冗長客套與廢話，拒絕大眾罐頭清單。
-   - 開頭允許一句極短、有情緒價值或幽默的導遊短語（破題帶動好心情）。
-   - 內文必須極度精簡、條理化，直接給出核心品項、數據、日圓(JPY)與換算台幣(約0.21)。
-   - 若有專業術語或特殊規矩，用 1 句話簡易生活邏輯解釋。
+【關鍵溝通規則】
+1. 嚴禁任何形式的廢話客套或開場白（絕對不要出現「哈囉兩位」、「歡迎來到...」、「今天我們要去...」等廢話），開頭直接切入第一項乾貨！
+2. 10/12 是女友生日！若是 10/12 行程，在結尾加一行高情商生日彩蛋即可，不佔用正文版面。
+3. 大幅強化【現場避坑注意與操作SOP】：詳細寫出「哪裡排隊/洗手間位置/避開人潮捷徑/機台按法/退稅封袋禁忌/置物櫃細節」。
+4. 面向兩人：餐點推薦以「兩人分食嚐鮮」為準；拍照以「兩人一起合照站位」為主。
 
-【精準餐廳菜單與食慾彈性庫】
-- D1 19:00 蟹道樂 上野店（永藤大樓 8F）：
-  * 招牌推薦：看板料理「神楽 かぐら」（約 8,250 円 / NT$ 1,733），含水煮蟹、蟹刺身、招牌蟹肉火鍋、特製蛋花雜炊稀飯與甜點。
-  * 老饕吃法：釜飯煮好先別全吃完，留 1/3 淋上附的熱螃蟹高湯與芥末做「茶泡飯」；火鍋吃完請店員現場加生蛋煮「蟹黃雜炊」。
-- D2 18:30 一頭牛燒肉 房家 上野六丁目店：
-  * 必點招牌：房家名物「絕對盛」（300g 約 2,728 円 / NT$ 573），一次吃到整頭黑毛和牛的 4~5 種稀少赤身與霜降部位。
-  * 必配附餐：盛岡手打冷麵、生蛋拌生牛肉（ユッケ）、生啤酒。
-- 當兩人說「不太餓/胃口小」時：主動推薦當前景點步行 3 分鐘內的名物甜點、咖啡或輕食（如花月堂菠蘿麵包、HARBS千層蛋糕、便利商店炸雞布丁）。
-- 當兩人說「肚子很餓」時：主動推薦附近老饕排隊拉麵、炭火牛舌、炸牛排或居酒屋。
-
-【固定輸出結構】
-- 🎙️ 導遊開場：（15字以內幽默或氛圍破題）
-- 🍽️ 老饕雙人點法 / 必買物：（直接列 1~2 款招牌名物 + JPY金額/NT金額 + 兩人分食點法）
-- 📸 情侶合照出片技巧：（具體說明兩人怎麼站、自拍棒角度或請路人幫拍的構圖）
-- 💡 現場避坑SOP：（機台/排隊/置物櫃/退稅/洗手間極短指令）
-- 🧭 下一站動線：（走幾分鐘，或搭 Metro 哪條線，提醒 72hr 券是否可用）
+【固定輸出模組】
+請嚴格依序輸出以下 4 個區塊：
+1. ⚠️【現場避坑注意與防呆SOP】：（核心重點！條列 2~3 點最容易踩雷、排隊避坑、洗手間、置物櫃或退稅規則）
+2. 🍽️【老饕雙人吃法 / 推薦必買】：（直接標出：招牌品項 + JPY金額/NT金額 + 兩人分食點法）
+3. 📸【情侶雙人合照出片技巧】：（具體教兩人站哪裡、自拍棒角度或請路人拍的構圖）
+4. 🧭【下一站精準動線】：（散步幾分鐘，或搭 Metro 哪條線，提醒能否刷 72hr 地鐵券）
 `;
 
     let currentSpotContext = null;
@@ -323,8 +301,8 @@
       const modal = document.getElementById('ai-guide-modal');
       modal.classList.remove('hidden');
 
-      const initialPrompt = `我們兩個人現在行程來到【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
-請結合我們的完整行程安排與交通憑證，為我們兩人做一段生動且精簡的隨身導覽（包含雙人點法、情侶拍照視角、避坑SOP與下一站動線）。`;
+      const initialPrompt = `我們兩個人現在行程在【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
+請立刻給出無廢話、硬核的深度攻略，特別加強現場避坑與排隊防呆 SOP。`;
 
       fetchGeminiGuide(initialPrompt);
     }
@@ -336,15 +314,43 @@
       document.getElementById('speech-btn').innerText = '🔊 朗讀';
     }
 
+    // 智能自動重試機制（徹底解決 429 忙線與偶發失敗）
+    async function fetchWithRetry(url, options, maxRetries = 2) {
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const res = await fetch(url, options);
+          if (res.status === 429 || res.status === 503) {
+            // 碰到 429 頻率限制或 503 伺服器忙碌，等待後自動重發
+            if (attempt < maxRetries) {
+              await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
+              continue;
+            }
+          }
+          return res;
+        } catch (e) {
+          if (attempt < maxRetries) {
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+          throw e;
+        }
+      }
+    }
+
+    // 核心 API 請求：優先使用極穩定的 gemini-2.5-flash，並帶自動重試
     async function fetchGeminiGuide(userPrompt) {
       const loading = document.getElementById('ai-loading');
       const responseEl = document.getElementById('ai-response-text');
+      const loadingText = document.getElementById('ai-loading-text');
+      
       loading.classList.remove('hidden');
       responseEl.classList.add('hidden');
+      loadingText.innerText = 'Gemini 正在為兩位提取精確攻略與避坑 SOP...';
 
+      // 依序排列穩定度最高的模型
       const modelCandidates = [
-        'gemini-3-flash-preview',
         'gemini-2.5-flash',
+        'gemini-3-flash-preview',
         'gemini-2.0-flash',
         'gemini-2.5-pro'
       ];
@@ -353,26 +359,30 @@
 
       for (const model of modelCandidates) {
         try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'x-goog-api-key': GEMINI_API_KEY
-            },
-            body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: SYSTEM_TRAVEL_KNOWLEDGE }]
+          const response = await fetchWithRetry(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+            {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-goog-api-key': GEMINI_API_KEY
               },
-              contents: [{ parts: [{ text: userPrompt }] }]
-            })
-          });
+              body: JSON.stringify({
+                systemInstruction: {
+                  parts: [{ text: SYSTEM_TRAVEL_KNOWLEDGE }]
+                },
+                contents: [{ parts: [{ text: userPrompt }] }]
+              })
+            }
+          );
 
-          const data = await response.json();
-          if (data.error) {
-            lastError = data.error.message;
-            continue;
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            lastError = errData.error?.message || `HTTP ${response.status}`;
+            continue; // 切換下一個模型
           }
 
+          const data = await response.json();
           if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
             reply = data.candidates[0].content.parts[0].text;
             break;
@@ -388,13 +398,16 @@
       if (reply) {
         responseEl.innerHTML = reply.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
       } else {
-        responseEl.innerHTML = `<span class="text-rose-600 font-bold">抱歉，呼叫失敗：${lastError || '未取得回應'}。請確認右上角 Key 是否正確，或直接手動提問。</span>`;
+        responseEl.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700">
+          <b>連線暫時忙碌：</b>${lastError || '未取得回應'}<br>
+          <span class="text-[11px] text-rose-500">系統已嘗試自動切換備援線路，請點下方快速追問重試一次即可。</span>
+        </div>`;
       }
     }
 
     function quickAsk(question) {
       if (!currentSpotContext) return;
-      const fullPrompt = `我們兩個人現在在行程景點【${currentSpotContext.name}】（${currentSpotContext.nameJp}）。${question}。請結合我們兩人行程回答。`;
+      const fullPrompt = `我們現在在行程景點【${currentSpotContext.name}】（${currentSpotContext.nameJp}）。${question}。不要廢話，直接給具體建議。`;
       fetchGeminiGuide(fullPrompt);
     }
 
@@ -406,7 +419,6 @@
       quickAsk(val);
     }
 
-    // 語音朗讀合成功能
     function toggleSpeech() {
       if (!window.speechSynthesis) {
         alert('您的瀏覽器不支援語音朗讀功能');
@@ -434,12 +446,10 @@
       }
     }
 
-    // QR Code Modal 開關
     function toggleQrModal() {
       document.getElementById('qr-modal').classList.toggle('hidden');
     }
 
-    // Visit Japan Web 本地圖片存取
     function handleVjwUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -480,7 +490,6 @@
       }
     }
 
-    // 匯率換算
     function toggleCalcModal() {
       const modal = document.getElementById('calc-modal');
       modal.classList.toggle('hidden');
@@ -506,7 +515,6 @@
       }
     }
 
-    // 完整 5 天行程資料庫（雙人擴充版必買清單）
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -794,7 +802,6 @@
       }
     };
 
-    // 初始化地圖
     let map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
     
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -939,7 +946,6 @@
       }
     }
 
-    // 頁面初始化
     window.addEventListener('load', () => {
       switchDay('day1');
       renderVjw();
@@ -947,7 +953,6 @@
       setTimeout(() => map.invalidateSize(), 300);
     });
 
-    // 註冊 Service Worker 啟用 PWA 安裝
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');
     }
