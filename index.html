@@ -118,7 +118,7 @@
       <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs text-slate-700 ai-bubble" id="ai-content-area">
         <div id="ai-loading" class="flex flex-col items-center justify-center py-8 space-y-2 text-slate-400">
           <div class="w-7 h-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span class="text-xs font-semibold">Gemini 導遊正在為您整理在地攻略...</span>
+          <span class="text-xs font-semibold">Gemini 導遊正在結合您的完整行程分析攻略...</span>
         </div>
         <div id="ai-response-text" class="hidden leading-relaxed"></div>
       </div>
@@ -126,6 +126,7 @@
       <!-- 快速追問按鈕列 -->
       <div class="px-4 py-1.5 bg-slate-50 border-t flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[11px]">
         <button onclick="quickAsk('這裡最推薦吃什麼？有什麼老饕必點點法？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 推薦吃什麼</button>
+        <button onclick="quickAsk('我們下一站要去哪？這一段該怎麼搭車或走路？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🧭 下一站怎麼走</button>
         <button onclick="quickAsk('現場有什麼隱藏拍照角度或打卡技巧？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 哪裡好拍照</button>
         <button onclick="quickAsk('這裡有什麼值得買？大約多少錢？怎麼退稅？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🛍️ 必買與退稅</button>
         <button onclick="quickAsk('現場有什麼避坑重點或排隊規矩要遵守？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑規矩</button>
@@ -133,7 +134,7 @@
 
       <!-- 自由提問對話框 -->
       <div class="p-3 border-t bg-white flex gap-2 shrink-0 pb-safe">
-        <input type="text" id="ai-user-query" placeholder="想問導遊什麼？(如: 附近哪裡有洗手間)"
+        <input type="text" id="ai-user-query" placeholder="想問導遊什麼？(如: 待會走去哪搭地鐵)"
                class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
                onkeydown="if(event.key==='Enter') submitCustomQuestion()">
         <button onclick="submitCustomQuestion()" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 shadow">
@@ -247,7 +248,7 @@
   </div>
 
   <script>
-    // 金鑰管理：純本地 LocalStorage 存取
+    // 金鑰管理
     let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
 
     function checkApiKeyStatus() {
@@ -267,11 +268,36 @@
         GEMINI_API_KEY = key.trim();
         localStorage.setItem('gemini_api_key', GEMINI_API_KEY);
         checkApiKeyStatus();
-        if (GEMINI_API_KEY) alert('API Key 設定完成！');
+        if (GEMINI_API_KEY) alert('API Key 設定完成！已啟用個人化行程導遊！');
       }
     }
 
-    // Gemini 導遊對話邏輯
+    // 核心注入：讓 Gemini 完整知曉行程全貌的 System Prompt
+    const SYSTEM_TRAVEL_KNOWLEDGE = `
+你現在是兩位旅客（陳政宇與隨行旅伴）在東京 4 天 3 夜（2026/10/09~10/12）的隨身專屬頂級私人導遊。
+你已經完整掌握他們的所有行程、機票、飯店、預約餐廳與交通票券，必須以此為基準回答，不能給出與行程矛盾的建議：
+
+【整體行程背景】
+- 機票：去程星宇航空 JX800 (10/09 08:30 TPE 桃園一航 -> 12:45 NRT 成田二航)；回程星宇航空 JX803 (10/12 15:20 NRT 成田二航 -> 18:00 TPE)。
+- 住宿：D0 前宿桃園藍水輕旅（已預約 05:00~05:30 桃機接駁）；D1~D3 全住 APA Hotel Ueno Ekiminami（アパホテル〈上野駅南〉）。
+- 交通憑證政策：
+  1. 機場往返：京成電鐵 Skyliner（成田B1藍色售票機換票，直達京成上野41分鐘）。
+  2. 市區交通：已購 Tokyo Subway Ticket 72小時地鐵券。只能搭「圓圈包英文字母」的東京地下鐵 Metro 與都營地下鐵！絕對不能刷 JR（如山手線綠色方框JY）或私鐵，否則會被擋。
+  3. 應急與超商：備有手機 Suica（西瓜卡），搭乘短程 JR 或買販賣機/超商使用。
+
+【每日精確動線與預約細節】
+- D0 (10/08): 抵達藍水輕旅，確認明晨送機。
+- D1 (10/09): 桃機出境 -> 成田 T2 Skyliner (12:40) -> 京成上野 -> APA 上野站南 Check-in -> 散步至秋葉原 Radio會館（模型公仔） -> 友都八喜Akiba（電器免稅） -> 二木之菓子（阿美橫町零食免稅） -> 回飯店放戰利品 -> 19:00 已預約【蟹道樂 上野店 (永藤大樓8F)】（步行350m即達，不要走去車站）。
+- D2 (10/10): 上野搭 G銀座線 -> 淺草寺雷門（花月堂波蘿麵包、抽籤） -> 搭車至押上 -> 墨田水族館（企鵝、水母）/晴空塔 Solamachi -> 18:30 已定案【一頭牛燒肉 房家 上野六丁目店】（黑毛和牛盛合） -> 回 APA 休息。
+- D3 (10/11): 純喫茶 丘（昭和風早餐） -> G線轉C千代田線至明治神宮（碎石林道走兩邊壓平處） -> 原宿竹下通 -> 漫步至澀谷 -> 17:40~17:59 已預約【SHIBUYA SKY 展望台】（14F入場，背包鎖46F） -> 鳥貴族 澀谷文化村通店（居酒屋串燒） -> 搭銀座線回上野。
+- D4 (10/12): 09:30 退房寄行李 -> 10:00 多慶屋 TAKEYA 1 藥妝掃貨免稅 -> 回 APA 拿大行李 -> 12:00 京成上野 Skyliner -> 12:45 抵達成田 T2 辦理星宇 JX803 報到/免稅店/返台。
+
+【回答方針】
+1. 語氣熱情、生動、專業，排版條理分明，重點加粗。
+2. 緊扣他們的具體前後行程：例如當旅客在「二木之菓子」時，主動提醒採買完先花 3 分鐘拿回 APA 房間放，再輕鬆前往 19:00 的蟹道樂。
+3. 具體指出價格（日幣與換算台幣）、推薦點法、拍照角度與現場避坑事項。
+`;
+
     let currentSpotContext = null;
     let isSpeaking = false;
 
@@ -288,13 +314,12 @@
       const modal = document.getElementById('ai-guide-modal');
       modal.classList.remove('hidden');
 
-      const initialPrompt = `你現在是隨行的專業東京私人導遊。我們現在來到了【${spot.name}】（${spot.nameJp}）。
-這是一個四天三夜自由行行程。請直接且生動地為我們介紹這個點的精華攻略，必須包含：
-1. 💡【現場必做與防呆SOP】：包含該找什麼櫃檯/機台顏色、置物櫃或交通進出細節。
-2. 🍽️【老饕吃法 / 必買物與價格】：如果是餐廳請推薦必吃品項與正確吃法；若是商圈請推薦必買神物、日幣/台幣大約價格及退稅注意。
-3. 📸【隱藏拍照角度】：教我們怎麼拍出不用人擠人的好看視角。
-4. 🏮【1個在地冷知識或禮節】：一句話趣味科普。
-請用繁體中文、排版條理清晰、口吻親切熱情、重點字加粗回答。`;
+      const initialPrompt = `我們現在行程來到【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
+請結合我們的完整行程安排與交通憑證，為我們做一段生動的隨身導覽：
+1. 💡【現場防呆與操作SOP】：現場該找什麼櫃檯、機台顏色、進出動線或置物櫃注意事項。
+2. 🍽️【老饕吃法 / 推薦必買與價格】：推薦這裡最內行的必吃必買（附日幣與約略台幣）、退稅方式。
+3. 🧭【行程前後串接】：告訴我們接下來下一站要去哪裡，如何搭乘地鐵（提醒能否刷 72 小時券）或散步。
+4. 📸【私房拍照點 & 避坑冷知識】：一個好看視角與一個現場規矩。`;
 
       fetchGeminiGuide(initialPrompt);
     }
@@ -306,8 +331,7 @@
       document.getElementById('speech-btn').innerText = '🔊 朗讀';
     }
 
-    // 核心修正：加入最新的 gemini-3-flash-preview / gemini-2.5-flash 模型梯隊
-    async function fetchGeminiGuide(promptText) {
+    async function fetchGeminiGuide(userPrompt) {
       const loading = document.getElementById('ai-loading');
       const responseEl = document.getElementById('ai-response-text');
       loading.classList.remove('hidden');
@@ -331,7 +355,10 @@
               'x-goog-api-key': GEMINI_API_KEY
             },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: promptText }] }]
+              systemInstruction: {
+                parts: [{ text: SYSTEM_TRAVEL_KNOWLEDGE }]
+              },
+              contents: [{ parts: [{ text: userPrompt }] }]
             })
           });
 
@@ -362,7 +389,7 @@
 
     function quickAsk(question) {
       if (!currentSpotContext) return;
-      const fullPrompt = `針對我們目前在的景點【${currentSpotContext.name}】，${question}。請用繁體中文簡明扼要回答。`;
+      const fullPrompt = `我們現在在行程景點【${currentSpotContext.name}】（${currentSpotContext.nameJp}）。${question}。請結合我們行程回答。`;
       fetchGeminiGuide(fullPrompt);
     }
 
