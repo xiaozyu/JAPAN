@@ -6,7 +6,6 @@
   <title>東京自由行導航助手</title>
   
   <!-- PWA 設定 -->
-  <link rel="manifest" href="./manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="東京行">
@@ -39,10 +38,10 @@
         <span class="font-bold text-xs tracking-wider" id="header-title">東京自由行導航</span>
       </div>
       
-      <!-- 右上角快捷功能 -->
+      <!-- 右上角快捷按鈕群 -->
       <div class="flex items-center gap-1.5">
         <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
-          <span>📲 QR</span>
+          <span>📲 QR 憑證</span>
         </button>
         <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
           <span>💴 匯率</span>
@@ -86,45 +85,6 @@
     </div>
   </main>
 
-  <!-- 🌟 AI 導遊抽屜 (免 API Key，100% 離線可用，絕不連線忙碌) 🌟 -->
-  <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[85vh] flex flex-col">
-    <div class="p-3 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl shrink-0">
-      <div class="flex items-center gap-2">
-        <span class="text-amber-500 text-base">✨</span>
-        <div>
-          <h3 class="text-xs font-bold text-slate-900" id="ai-spot-name">景點名稱</h3>
-          <p class="text-[10px] text-slate-500 font-mono" id="ai-spot-jp">日文名稱</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="speakAiReply()" class="text-[11px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-full text-slate-700 flex items-center gap-1 font-bold">
-          <span>🔊</span> 朗讀
-        </button>
-        <button onclick="closeAiSheet()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none p-1">✕</button>
-      </div>
-    </div>
-
-    <!-- 快速提問標籤 -->
-    <div class="flex gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0 border-b bg-white text-[11px]">
-      <button onclick="askOfflineGuide('food')" class="shrink-0 bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded-full border border-blue-200 font-bold">🍽️ 老饕雙人點法</button>
-      <button onclick="askOfflineGuide('pitfall')" class="shrink-0 bg-amber-50 text-amber-800 hover:bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200 font-bold">⚠️ 避坑重點細節</button>
-      <button onclick="askOfflineGuide('photo')" class="shrink-0 bg-purple-50 text-purple-700 hover:bg-purple-100 px-2.5 py-1 rounded-full border border-purple-200 font-bold">📸 雙人情侶合照</button>
-      <button onclick="askOfflineGuide('snack')" class="shrink-0 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-200 font-bold">🍵 不太餓吃什麼</button>
-    </div>
-
-    <!-- 導遊內容區 -->
-    <div class="p-3.5 overflow-y-auto flex-1 text-xs leading-relaxed space-y-2 bg-slate-50" id="ai-reply-content"></div>
-
-    <!-- 底部自訂提問 -->
-    <div class="p-2 border-t bg-white flex gap-1.5 shrink-0">
-      <input type="text" id="ai-user-input" placeholder="想問導遊什麼？(如: 退稅、置物櫃、廁所)" 
-             class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
-      <button onclick="sendCustomOfflineQuery()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow shrink-0">
-        查詢
-      </button>
-    </div>
-  </div>
-
   <!-- 彈出式：QR Code / 電子憑證專區 Modal -->
   <div id="qr-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl p-4 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 space-y-4">
@@ -141,15 +101,15 @@
           <span class="text-xs font-bold text-blue-900">🇯🇵 Visit Japan Web (入境QR)</span>
           <span class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded font-bold" id="vjw-status">尚未上傳</span>
         </div>
-        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，將入境與海關申報 QR 碼截圖上傳，保存在手機內免聯網也能一秒出示！</p>
+        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，截圖 QR 碼並點擊下方按鈕上傳儲存，出境日本免聯網一鍵出示！</p>
         
         <div id="vjw-preview-area" class="hidden text-center py-1">
           <img id="vjw-img" src="" alt="VJW QR Code" class="mx-auto max-h-48 rounded border border-blue-300 shadow">
-          <button onclick="removeVjwImg()" class="mt-1 text-[11px] text-red-600 font-bold">刪除重新上傳</button>
+          <button onclick="removeVjwImg()" class="mt-1 text-[11px] text-red-600 font-bold">刪除重傳</button>
         </div>
 
         <label class="block w-full text-center py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs cursor-pointer hover:bg-blue-700 transition" id="vjw-upload-btn">
-          <span>📤 上傳 VJW 截圖 (保存在本機)</span>
+          <span>📤 上傳 VJW 截圖 (保存在手機)</span>
           <input type="file" accept="image/*" class="hidden" onchange="handleVjwUpload(event)">
         </label>
       </div>
@@ -161,18 +121,21 @@
           <span class="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-bold">10/11 17:40~17:59</span>
         </div>
         
+        <!-- 票券 1 -->
         <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
           <div class="text-[11px] font-bold text-slate-800 flex justify-between">
             <span>票券 1 (陳政宇)</span>
             <span class="font-mono text-purple-700 font-semibold">ID: 0013</span>
           </div>
           <div class="bg-slate-50 py-2 border rounded">
+            <!-- 內建 QR 產生器或顯示雲端對應圖片 -->
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=00396-2026-0927-8101-5140-0013" 
                  alt="QR 1" class="mx-auto w-36 h-36">
             <span class="text-[10px] text-slate-400 font-mono">00396-2026-0927-8101-5140-0013</span>
           </div>
         </div>
 
+        <!-- 票券 2 -->
         <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
           <div class="text-[11px] font-bold text-slate-800 flex justify-between">
             <span>票券 2 (隨行人員)</span>
@@ -186,6 +149,7 @@
         </div>
         <p class="text-[10px] text-purple-700 leading-relaxed font-medium">⚠️ 14F 閘門直接出示此 QR Code 掃描進場；背包、相機腳架需放入 46F 退幣式置物櫃。</p>
       </div>
+
     </div>
   </div>
 
@@ -228,140 +192,6 @@
   </div>
 
   <script>
-    // 🌟 全離線精準資料庫（老饕點法、避坑、合照角度、小吃） 🌟
-    const guideDatabase = {
-      "蟹道樂 上野店 (永藤大樓8F)": {
-        food: "建議點兩套不同價位的會席套餐（例如一份以『烤蟹+蟹肉刺身』為主的套餐，另一份選『螃蟹火鍋+蟹釜飯』）。這樣兩人可以同時吃到刺身、炭烤、天婦羅與鍋物，最後店員會用火鍋高湯煮極致濃郁的『蟹膏雜炊蛋粥』，兩人分食份量最剛好！",
-        pitfall: "永藤大樓電梯較小，傍晚用餐高峰需排隊等電梯。已預約 19:00 務必 18:55 抵達 8F 櫃檯出示名字。外套與隨身包可放入包廂側邊櫃子防蟹味。",
-        photo: "穿和服的店員端上整盤鮮紅長腳蟹刺身時，請店員協助拍兩人與整桌螃蟹大餐的合照；包廂內的日式格柵背景非常有質感。",
-        snack: "若吃完還想吃甜點，下樓往阿美橫町走 1 分鐘有『茶之君野園』的濃郁抹茶霜淇淋。"
-      },
-      "一頭牛燒肉 房家 上野六丁目店": {
-        food: "必點『一頭牛盛合（黑毛和牛 5 種或 6 種稀有部位拼盤）』！房家特色是一次買進整頭牛，稀有部位油花極美。雙人再加點一份厚切牛舌、白飯與生啤，炭火微烤 5 秒翻面，肉汁甜度爆表。",
-        pitfall: "店面不大且炭火較旺，兩人換手烤肉注意不要一次放太多片油脂豐富的部位，避免起大火烤焦。店員提供圍裙務必穿上防油噴。",
-        photo: "肉盤上桌時，肉品名牌擺放整齊的木質盛合盤是絕佳打卡畫面，夾起油花均勻的和牛懸空在炭火上拍特寫最誘人。",
-        snack: "肉吃多了想解膩，店內的『盛岡冷麵』口感非常 Q 彈清爽，兩人分食一碗剛剛好。"
-      },
-      "秋葉原 Radio 會館": {
-        food: "會館純逛街不吃飯。附近若要墊肚子，昭和通口的『秋葉原牛かつ 壱弐参 (炸牛元村同體系)』炸牛排是極品，外酥內嫩自己煎。",
-        pitfall: "整棟有 10 層樓，1~3F 偏向大眾熱門盲盒盒玩，4~7F 多為各店家承租的玻璃格子鋪（中古模型）。格子鋪價格浮動，建議看到超喜歡的先記下樓層格號，比價後再下手，很多只收現金！",
-        photo: "大門口巨大黃色『秋葉原ラジオ会館』霓虹招牌前，退後到街道對側拍帶有街道感的合照最具秋葉原特色。",
-        snack: "會館出來對面『鯛魚燒 くりこ庵』，必吃厚皮栗子紅豆或季節限定卡士達鯛魚燒。"
-      },
-      "淺草寺・雷門": {
-        food: "午餐推薦雷門通上的『淺草 今半』壽喜燒午間套餐（黑毛和牛壽喜燒定食CP值極高），或是『淺草炸牛元村』。",
-        pitfall: "【極度重要】仲見世商店街嚴禁邊走邊吃！買了花月堂波蘿麵包、炸饅頭或吉備糰子，必須在店家旁邊的專用食用區吃完再走。求籤若抽到『凶』，綁在旁邊鐵架上即可化解厄運。",
-        photo: "雷門巨大紅燈籠正前方永遠人擠人！最佳情侶拍照角度：走到大燈籠斜下方 45 度角由下往上仰拍，避開人群且燈籠字樣清楚；或在本堂側邊紅色五重塔為背景合照。",
-        snack: "『花月堂』現烤巨型菠蘿麵包（外酥內極軟），以及『淺草 滿願堂』烤地瓜番薯金鍔。"
-      },
-      "SHIBUYA SKY 展望台 (14F入口)": {
-        food: "參觀完下樓至 SCRAMBLE SQUARE 地下美食街或走至文化村通吃『鳥貴族居酒屋』，均一價平板點餐無壓力。",
-        pitfall: "【絕對死線】預約 17:40~17:59 遲到直接作廢！46F 頂樓所有背包、手提袋、帽子、圍巾一律強制鎖置物櫃（準備 100 日圓硬幣，會退幣）。頂樓風大，手機務必抓緊或使用防掉掛繩！",
-        photo: "【排隊玻璃角 SKY EDGE】：可以俯瞰整個澀谷十字路口暮光，傍晚 17:50 剛好是夕陽交接夜景的藍調時刻；兩人坐手扶梯直上天台的動態背影也超浪漫。",
-        snack: "46 樓室內 Lounge Bar 有販售限定調酒與冰淇淋，可邊坐沙發邊欣賞東京鐵塔與夜景。"
-      },
-      "多慶屋 TAKEYA 1": {
-        food: "買完戰利品回飯店前，可到御徒町站旁吃『鴨to蔥』拉麵，全鴨熬煮清甜湯頭配三種自選日本蔥。",
-        pitfall: "藥妝在 2F/3F，零食在 1F。建議分工迅速選購，10:30 就去排免稅櫃檯！出示護照正本享 10% 免稅（滿 5,000 円），免稅封口膠袋在日本境內千萬不能拆開。",
-        photo: "多慶屋整棟顯眼的紫色外觀，兩人提著戰利品在紫色大樓前合照一張，宣告掃貨大成功！",
-        snack: "多慶屋 1F 門口的日本麝香葡萄（若當季特價）非常甜脆，回飯店洗來吃超棒。"
-      }
-    };
-
-    let currentSpotContext = null;
-    let currentSpeechText = "";
-
-    function openAiSheet(spot) {
-      currentSpotContext = spot;
-      document.getElementById('ai-spot-name').innerText = spot.name;
-      document.getElementById('ai-spot-jp').innerText = spot.nameJp;
-      
-      const db = guideDatabase[spot.name] || {};
-      const defaultContent = `
-        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 shadow-sm">
-          <div class="font-bold text-slate-800 flex items-center gap-1">📌 <b>現場操作指南：</b></div>
-          <div class="text-slate-600 leading-relaxed">${spot.stepTip.replace(/\n/g, '<br>')}</div>
-          <div class="text-blue-700 font-semibold mt-1">💡 推薦體驗：${spot.actionTip}</div>
-        </div>
-        <div class="text-center text-slate-400 pt-2 text-[11px]">點選上方標籤查看老饕點法、避坑重點與情侶合照角度</div>
-      `;
-      document.getElementById('ai-reply-content').innerHTML = defaultContent;
-      currentSpeechText = `${spot.name}。${spot.stepTip}。${spot.actionTip}`;
-
-      const sheet = document.getElementById('ai-guide-sheet');
-      sheet.classList.remove('translate-y-full');
-    }
-
-    function closeAiSheet() {
-      const sheet = document.getElementById('ai-guide-sheet');
-      sheet.classList.add('translate-y-full');
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-    }
-
-    function askOfflineGuide(type) {
-      if (!currentSpotContext) return;
-      const db = guideDatabase[currentSpotContext.name] || {};
-      const titles = {
-        food: "🍽️ 老饕雙人點法推薦",
-        pitfall: "⚠️ 現場避坑重點與細節",
-        photo: "📸 雙人情侶絕佳拍攝角度",
-        snack: "🍵 順路小吃與解饞推薦"
-      };
-
-      let answer = db[type];
-      if (!answer) {
-        if (type === 'food') answer = "建議雙人點不同招牌套餐或盛合分食，既能品嚐多樣口味又不會過飽。";
-        else if (type === 'pitfall') answer = "注意日本室內全面禁菸、垃圾請隨身帶回飯店丟、大眾運輸內手機請轉靜音。";
-        else if (type === 'photo') answer = "找地標建築正面 45 度角仰拍，人物置中偏下，避開地面人潮最有氛圍。";
-        else answer = "周邊超商限定宇治抹茶拿鐵、現烤糰子或限定泡芙都是散步解饞首選。";
-      }
-
-      currentSpeechText = `${titles[type]}。${answer}`;
-      document.getElementById('ai-reply-content').innerHTML = `
-        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
-          <div class="font-bold text-blue-700 flex items-center gap-1 text-xs">
-            <span>✨</span> ${titles[type]}
-          </div>
-          <div class="text-slate-700 whitespace-pre-wrap leading-relaxed text-xs">${answer}</div>
-        </div>
-      `;
-    }
-
-    function sendCustomOfflineQuery() {
-      const input = document.getElementById('ai-user-input');
-      const q = input.value.trim().toLowerCase();
-      if (!q) return;
-      input.value = '';
-
-      let reply = "出國請記得隨身攜帶護照正本辦理退稅；搭乘地鐵認明『圓圈包英文字母』路線。";
-      if (q.includes("退稅") || q.includes("tax")) {
-        reply = "消費滿 5,000 日圓出示護照正本即可免稅 10%。藥妝與零食等消耗品會用專用透明袋密封，回台灣前不可拆封！";
-      } else if (q.includes("廁所") || q.includes("洗手間")) {
-        reply = "地鐵站剪票口內、各百貨商場（如 Solamachi、Scramble Square）高樓層均有乾淨無障礙洗手間；超商借用前請先向店員打招呼。";
-      } else if (q.includes("置物櫃") || q.includes("行李")) {
-        reply = "各主要車站地下道與剪票口旁均設有投幣式置物櫃（Coin Locker），支援西瓜卡逼卡付款最方便，大型行李格多為 700~900 日圓。";
-      }
-
-      currentSpeechText = reply;
-      document.getElementById('ai-reply-content').innerHTML = `
-        <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
-          <div class="font-bold text-amber-700 flex items-center gap-1 text-xs">
-            <span>💡</span> 查詢解答
-          </div>
-          <div class="text-slate-700 leading-relaxed text-xs">${reply}</div>
-        </div>
-      `;
-    }
-
-    function speakAiReply() {
-      if (!window.speechSynthesis || !currentSpeechText) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(currentSpeechText.replace(/[#*`]/g, ''));
-      utterance.lang = 'zh-TW';
-      utterance.rate = 1.0;
-      window.speechSynthesis.speak(utterance);
-    }
-
     // QR Code Modal 開關
     function toggleQrModal() {
       const modal = document.getElementById('qr-modal');
@@ -797,16 +627,12 @@
             </div>
           </div>
 
-          <div class="mt-2.5 flex gap-2">
-            <button onclick="event.stopPropagation(); openAiSheet(travelData['${dayKey}'].spots[${idx}])" 
-                    class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 py-1.5 rounded-lg shadow-sm hover:bg-amber-100">
-              <span>✨</span> 呼叫 AI 導遊
-            </button>
+          <div class="mt-2 flex justify-end">
             <a href="${navUrl}" 
                target="_blank" 
                onclick="event.stopPropagation();"
-               class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-blue-600 text-white py-1.5 rounded-lg shadow hover:bg-blue-700">
-              <span>📍</span> 路線導航
+               class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
+               <span>📍</span> 開啟 Google Maps 路線導航
             </a>
           </div>
         `;
@@ -864,10 +690,6 @@
       renderVjw();
       setTimeout(() => map.invalidateSize(), 300);
     });
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
-    }
   </script>
 </body>
 </html>
