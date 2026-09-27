@@ -247,7 +247,7 @@
   </div>
 
   <script>
-    // 金鑰管理：純本地 LocalStorage 存取，不寫死在原始碼中
+    // 金鑰管理：純本地 LocalStorage 存取
     let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
 
     function checkApiKeyStatus() {
@@ -306,13 +306,19 @@
       document.getElementById('speech-btn').innerText = '🔊 朗讀';
     }
 
+    // 核心修正：加入最新的 gemini-3-flash-preview / gemini-2.5-flash 模型梯隊
     async function fetchGeminiGuide(promptText) {
       const loading = document.getElementById('ai-loading');
       const responseEl = document.getElementById('ai-response-text');
       loading.classList.remove('hidden');
       responseEl.classList.add('hidden');
 
-      const modelCandidates = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
+      const modelCandidates = [
+        'gemini-3-flash-preview',
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.5-pro'
+      ];
       let lastError = null;
       let reply = null;
 
