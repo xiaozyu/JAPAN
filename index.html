@@ -86,11 +86,11 @@
     </div>
   </main>
 
-  <!-- 🌟 AI 導遊抽屜 (拔除朗讀、支援 gemini-3.8-flash 與離線備援) 🌟 -->
+  <!-- 🌟 真實 AI 即時思考導遊抽屜（無罐頭、無朗讀） 🌟 -->
   <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[85vh] flex flex-col">
     <div class="p-3 border-b flex justify-between items-center bg-white rounded-t-2xl shrink-0">
       <div class="flex items-center gap-2">
-        <span class="text-amber-500 text-lg">✨</span>
+        <span class="text-amber-500 text-base">✨</span>
         <div>
           <h3 class="text-xs font-bold text-slate-900" id="ai-spot-name">景點名稱</h3>
           <p class="text-[10px] text-slate-400 font-mono" id="ai-spot-jp">日文名稱</p>
@@ -104,17 +104,15 @@
 
     <!-- 底部膠囊快速追問按鈕列 -->
     <div class="flex gap-1.5 px-3 py-2 overflow-x-auto no-scrollbar shrink-0 border-t bg-slate-50 text-[11px]">
-      <button onclick="callGemini('請提供這家店/景點最推薦的【老饕雙人頂級點法】與招牌必吃（附簡易價格或吃法眉角）')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🍽️ 老饕雙人點法</button>
-      <button onclick="callGemini('兩位情侶在這邊有什麼【最佳合照角度與拍照出片技巧】？如何避開人潮？')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">📸 雙人情侶合照</button>
-      <button onclick="callGemini('此處有什麼【現場避坑 SOP 與不可不知道的規矩】？')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚠️ 避坑規矩細節</button>
-      <button onclick="callGemini('如果目前【不太餓】，附近有什麼特色散步甜點、飲品或輕量小吃？')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🍵 不太餓吃什麼</button>
-      <button onclick="callGemini('如果逛完【非常餓】，這附近走路 5 分鐘內有什麼硬核高評價正餐（拉麵/和牛/炸豬排）？')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🍲 很餓換吃什麼</button>
-      <button onclick="callGemini('這附近有什麼【必買伴手禮、藥妝與退稅 10% 關鍵提醒】？')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🛍️ 必買與退稅</button>
+      <button onclick="callGemini('重點列出該地點的【現場必知禁忌、限制與避坑規矩】（包含邊走邊吃限制、預約時限、寄物規範、特定吃法眉角）。')" class="shrink-0 bg-white hover:bg-amber-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚠️ 避坑與規矩</button>
+      <button onclick="callGemini('列出【最值得點或必買的 2~3 個品項】（直接給具體品名、預估日幣金額、推薦原因與點餐數量組合）。')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🎯 推薦品項與點法</button>
+      <button onclick="callGemini('列出此處步行 3 分鐘內【乾淨洗手間位置】與【投幣式置物櫃 (Coin Locker) 具體位置】。')" class="shrink-0 bg-white hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🚻 廁所與置物櫃</button>
+      <button onclick="callGemini('情侶在此處的【最佳合照角度】（給出避開人潮的具體站位與鏡頭取景方式）。')" class="shrink-0 bg-white hover:bg-purple-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">📸 精準拍攝站位</button>
     </div>
 
     <!-- 底部自訂輸入框 -->
     <div class="p-2 border-t bg-white flex gap-1.5 shrink-0">
-      <input type="text" id="ai-user-input" placeholder="問問導遊（例如：附近有廁所嗎、洗手水怎麼用）..." 
+      <input type="text" id="ai-user-input" placeholder="直接打關鍵字（如：洗手水、拉麵、退稅）..." 
              class="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
       <button onclick="sendCustomAiQuery()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow shrink-0">
         發送
@@ -254,7 +252,7 @@
   </div>
 
   <script>
-    // 🌟 API Key 管理 🌟
+    // 🌟 API Key 存取 🌟
     function getStoredApiKey() {
       return localStorage.getItem('gemini_api_key') || "";
     }
@@ -287,65 +285,12 @@
       document.getElementById('key-status-msg').innerText = "已清除 Key";
     }
 
-    // 🌟 官方最新支援的端點清單（剔除所有已被廢棄的模型） 🌟
+    // 🌟 2026 現行官方主流 Flash 模型清單 🌟
     const modelCandidates = [
       'gemini-3.8-flash',
-      'gemini-3-flash-preview',
-      'gemini-2.5-flash'
+      'gemini-3.5-flash-lite',
+      'gemini-3-flash-preview'
     ];
-
-    // 🌟 深度離線備援庫（截圖經典版，永不連線失敗） 🌟
-    const backupGuideDB = {
-      "桃園國際機場 第一航廈": {
-        intro: "出發東京！航程 3 小時 25 分，準備享受美好假期。",
-        food: "登機前若未用餐，一航管制區內有 B1 美食街（新東陽、漢堡王），3F 有貴賓室與咖啡輕食。",
-        photo: "候機室落地窗前，以星宇 A321neo 或 A350 質感飛機為背景，兩人手持機票護照合照最經典。",
-        pitfall: "行動電源、鋰電池設備嚴禁放行李箱託運！安檢時筆電平板需單獨放籃子，液體容器不得超過 100ml。",
-        next: "起飛前 30 分鐘於飛機上換好日本 SIM 卡，降落成田後直接開機漫遊。"
-      },
-      "蟹道樂 上野店 (永藤大樓8F)": {
-        intro: "螃蟹自由萬歲！今晚錢錢沒有不見，是變成了好吃的樣子。",
-        food: "直上頂級：建議點兩份「匠（たくみ）」套餐（約 13,200 円 / NT$ 2,772），比神樂套餐多了「烤螃蟹」與「螃蟹天婦羅」，奢華感拉滿。\n• 那個檸檬水：那是「洗手水」！剝完螃蟹後手指浸進去去腥，旁邊有小毛巾，千萬別喝下肚。\n• 極致吃法：雜炊（蛋花稀飯）最後請店員「現場表演」，那是整鍋鮮味精華，兩個人一定要把碗底刮乾淨。",
-        photo: "店內請店員桌邊高角度俯拍，兩人舉起巨大蟹腳乾杯；門口招牌大螃蟹下擺出螃蟹手勢（V）。",
-        pitfall: "桌上有服務鈴，有事直接按；細長蟹匙是用來「推」出蟹肉的，不是用來「挖」的。",
-        next: "餐後可步行 5 分鐘至上野公園或不忍池散步吹晚風。"
-      },
-      "一頭牛燒肉 房家 上野六丁目店": {
-        intro: "整頭黑毛和牛購入的炭火極致美味，油脂香甜爆汁！",
-        food: "必點『一頭牛盛合（5 種珍稀部位拼盤）』配厚切牛舌與生啤酒，炭火烤 5 秒翻面最嫩；盛岡冷麵分食一碗解膩神物。",
-        photo: "木質盛合盤端上桌時拍照超誘人，夾起油花均勻的和牛懸空特寫拍動態。",
-        pitfall: "油脂豐富的部位勿一次全放烤網，避免引發大火燒焦；店員提供的圍裙務必穿好防油噴。",
-        next: "吃飽步行 3 分鐘回 APA 飯店，完美收官。"
-      },
-      "秋葉原 Radio 會館": {
-        intro: "二次元夢幻聖殿！整棟 10 層樓正版公仔模型應有盡有。",
-        food: "昭和通口『秋葉原牛かつ 壱弐参』炸牛排定食，外酥內嫩自己煎。",
-        photo: "退後至對街，以巨大黃色『秋葉原ラジオ会館』霓虹招牌為背景合照，街頭氛圍感滿滿。",
-        pitfall: "4~7F 各家中古格子鋪標價差異大，先拍照記下編號貨比三家再買；部分格子只收現金。",
-        next: "對面即為 Yodobashi-Akiba，或漫步回阿美橫町二木之菓子。"
-      },
-      "淺草寺・雷門": {
-        intro: "東京最古老寺廟！巨大紅燈籠打卡祈福，沉浸江戶下町氛圍。",
-        food: "午餐推薦『淺草 今半』黑毛和牛壽喜燒定食，或排隊名店『淺草炸牛元村』。",
-        photo: "走到大紅燈籠斜下方 45 度角由下往上仰拍，避開人潮且文字清楚；本堂旁紅色五重塔亦是絕佳合照點。",
-        pitfall: "仲見世商店街嚴禁邊走邊吃！抽到凶籤請綁在廟方鐵架上化解。",
-        next: "淺草搭地鐵 5 分鐘直達押上站，前往晴空塔城。"
-      },
-      "SHIBUYA SKY 展望台 (14F入口)": {
-        intro: "360 度俯瞰東京絕美天際線！落日夕陽到璀璨夜景的極致浪漫。",
-        food: "下樓至文化村通吃『鳥貴族居酒屋』，均一價平板點餐無壓力大口吃串燒。",
-        photo: "【SKY EDGE 玻璃角落】俯瞰澀谷十字路口暮光；搭乘露天手扶梯直上天台拍背影超唯美。",
-        pitfall: "預約 17:40~17:59 遲到門票直接作廢！46F 頂樓所有背包、帽子、圍巾一律強制鎖入 100 日圓退幣式置物櫃。",
-        next: "下樓逛澀谷十字路口、忠犬八公像，或在商場地下街品嚐精緻甜點。"
-      },
-      "多慶屋 TAKEYA 1": {
-        intro: "上野掃貨終點站！紫色大樓藥妝零食一站購足，滿載而歸！",
-        food: "買完戰利品至御徒町站旁吃『鴨to蔥』拉麵，全鴨熬煮清甜湯頭配自選日本蔥。",
-        photo: "提著滿滿免稅戰利品袋，在多慶屋醒目的紫色大樓前合影留念。",
-        pitfall: "10:00 準時衝 2F/3F 藥妝館，10:30 排免稅櫃檯。出示護照正本享 10% 免稅，封口膠袋境內嚴禁拆封！",
-        next: "11:30 回 APA 拿行李，步行至京成上野站搭 12:00 Skyliner 前往機場。"
-      }
-    };
 
     let currentSpotContext = null;
 
@@ -354,8 +299,7 @@
       document.getElementById('ai-spot-name').innerText = spot.name;
       document.getElementById('ai-spot-jp').innerText = spot.nameJp;
 
-      // 自動產生該景點的預設總覽
-      callGemini("請針對目前景點，給出：1. 幽默親切的導遊開場 2. 老饕雙人頂級點法 3. 現場避坑SOP 4. 下一站動線建議。請直接重點條列，繁體中文回答。");
+      callGemini("重點列出該地點的：1. 現場必知禁忌與避坑規矩 2. 最推薦品項或招牌點法（含價格與份量）。直接重點輸出，不講廢話。");
 
       const sheet = document.getElementById('ai-guide-sheet');
       sheet.classList.remove('translate-y-full');
@@ -371,32 +315,46 @@
       const apiKey = getStoredApiKey();
       const contentEl = document.getElementById('ai-reply-content');
 
-      // 若未填 Key，直接秒出深度離線攻略
       if (!apiKey) {
-        renderLocalFallback(userTask, false);
+        contentEl.innerHTML = `
+          <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-2">
+            <div class="font-bold flex items-center gap-1 text-xs">
+              <span>⚠️</span> 尚未設定 Gemini API Key
+            </div>
+            <div class="text-[11px] leading-relaxed">
+              點擊右上角「<b>🔑 KEY</b>」按鈕貼上你的 Google Gemini API Key，即可啟用即時思考導遊！
+            </div>
+            <button onclick="toggleKeyModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-1.5 rounded-lg text-xs mt-1">
+              立即設定 Key
+            </button>
+          </div>
+        `;
         return;
       }
 
       contentEl.innerHTML = `
-        <div class="py-8 text-center space-y-2">
-          <div class="inline-block animate-spin text-2xl">🧭</div>
-          <div class="text-xs font-bold text-blue-600 animate-pulse">Gemini 正在深入思考「${currentSpotContext.name}」專屬攻略...</div>
-          <div class="text-[10px] text-slate-400">正在調用官方大模型即時演算</div>
+        <div class="py-6 text-center space-y-1.5">
+          <div class="inline-block animate-spin text-xl">🧭</div>
+          <div class="text-xs font-bold text-blue-600 animate-pulse">正在精準演算「${currentSpotContext.name}」要點...</div>
+          <div class="text-[10px] text-slate-400">調用官方 Gemini 3.8 Flash 模型</div>
         </div>
       `;
 
-      const systemInstruction = `你是一位幽默、資深且講究細節的日本東京自由行私人導遊。當前有一對台灣情侶正在東京旅行。
-景點名稱：${currentSpotContext.name} (${currentSpotContext.nameJp})。
+      // 嚴格指示：話少、數據具體、零客套
+      const systemInstruction = `你是一位講究效率與實戰細節的東京自由行隨身助手。
+地點：${currentSpotContext.name} (${currentSpotContext.nameJp})。
 已知現場備忘：${currentSpotContext.stepTip}。
 已知推薦點：${currentSpotContext.actionTip}。
-原則：
-1. 拒絕毫無營養的客套話與大眾化清單，直接給出最實用的核心數據、店內規矩或精準點法。
-2. 重點條列，標題加 emoji，段落分明。
-3. 如果是餐廳，給出具體雙人點餐組合、預估日圓金額與避坑吃法（例如洗手水、沾醬方式）。
-4. 如果是景點，給出精準機位角度與避開人潮時間。
-5. 繁體中文回答。`;
+
+回覆規範（嚴格遵守）：
+1. 嚴禁任何開場白、客套話、自介或大眾化清單，直接輸出重點結論與具體數據。
+2. 分為兩大板塊：【⚠️ 現場避坑與禁忌】、【🎯 推薦品項與點法】。
+3. 推薦品項必須明確列出：具體品名、預估日圓金額、點餐數量/分食建議。
+4. 避坑必須說明：現場規矩限制（如洗手水/邊走邊吃/置物櫃）、免稅條件或入場時限。
+5. 繁體中文條列輸出。`;
 
       let reply = null;
+      let lastErr = null;
 
       for (const model of modelCandidates) {
         try {
@@ -413,9 +371,12 @@
             const data = await res.json();
             reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (reply) break;
+          } else {
+            const errJson = await res.json();
+            lastErr = new Error(errJson.error?.message || res.statusText);
           }
         } catch (e) {
-          // 嘗試下一個支援的模型
+          lastErr = e;
         }
       }
 
@@ -423,51 +384,22 @@
         contentEl.innerHTML = `
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
             <div class="text-[10px] text-blue-600 font-bold flex items-center justify-between border-b pb-1">
-              <span>✨ Gemini 即時思考解答</span>
+              <span>✨ 即時思考解析</span>
               <span class="font-mono text-slate-400 text-[9px]">${currentSpotContext.name}</span>
             </div>
             <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">${reply}</div>
           </div>
         `;
       } else {
-        // 若 API 配額耗盡或網路問題，無縫切換離線深度庫，絕不跳連線失敗
-        renderLocalFallback(userTask, true);
-      }
-    }
-
-    function renderLocalFallback(task, fromNetworkFail = false) {
-      const db = backupGuideDB[currentSpotContext.name] || {};
-      const contentEl = document.getElementById('ai-reply-content');
-      const notice = fromNetworkFail ? "<div class='text-[10px] text-amber-600 font-bold mb-2'>（雲端連線忙碌，已自動切換離線深度攻略）</div>" : "";
-
-      let answer = "";
-      if (task.includes("點法") || task.includes("招牌")) {
-        answer = `<b>🍽️ 老饕雙人頂級點法：</b><br>${(db.food || "建議兩人點不同套餐或招牌盛合分食，既能品嚐多樣口味又不會過飽。").replace(/\n/g, '<br>')}`;
-      } else if (task.includes("合照") || task.includes("角度")) {
-        answer = `<b>📸 雙人情侶合照技巧：</b><br>${db.photo || "找地標建築正面 45 度角仰拍，人物置中避開人潮最好看。"}`;
-      } else if (task.includes("避坑") || task.includes("規矩")) {
-        answer = `<b>⚠️ 現場避坑 SOP：</b><br>${db.pitfall || "請隨身攜帶護照正本以備免稅；大眾運輸請保持手機靜音。"}`;
-      } else if (task.includes("不太餓")) {
-        answer = `<b>🍵 不太餓吃什麼：</b><br>${db.snack || "周邊便利超商限定宇治抹茶拿鐵、現烤糰子都是散步解饞首選。"}`;
-      } else if (task.includes("很餓")) {
-        answer = `<b>🍲 很餓換吃什麼：</b><br>${db.hungry || "周邊有知名連鎖拉麵店或居酒屋，隨時能大快朵頤！"}`;
-      } else if (task.includes("必買") || task.includes("退稅")) {
-        answer = `<b>🛍️ 必買與退稅注意事項：</b><br>消費滿 5,000 日圓結帳時出示護照正本即可免稅 10%。消耗品（藥妝、零食）會以專用塑膠袋密封，回台出境前請勿拆封！`;
-      } else {
-        answer = `
-          <div>🗣️ <b>導遊開場：</b>${db.intro || "歡迎來到東京！細細感受這座城市的獨特魅力。"}</div>
-          <div class="mt-2">🍽️ <b>老饕點法：</b><br>${(db.food || "建議兩人點不同招牌套餐分食。").replace(/\n/g, '<br>')}</div>
-          <div class="mt-2">💡 <b>現場避坑：</b><br>${db.pitfall || "請隨身攜帶護照正本以備免稅。"}</div>
-          <div class="mt-2">🧭 <b>下一站動線：</b><br>${db.next || "順著地鐵線移動，全程 72hr 券超順路。"}</div>
+        // 出錯時直接誠實回報，絕不塞假罐頭
+        contentEl.innerHTML = `
+          <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-200 space-y-1 text-xs">
+            <div class="font-bold">連線失敗</div>
+            <div class="text-[11px] leading-relaxed">${lastErr ? lastErr.message : 'API Key 無效或網路逾時'}</div>
+            <div class="text-[10px] text-slate-500 pt-1">請點擊右上角「🔑 KEY」確認你的 Key 是否正確。</div>
+          </div>
         `;
       }
-
-      contentEl.innerHTML = `
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 leading-relaxed text-xs text-slate-800">
-          ${notice}
-          ${answer}
-        </div>
-      `;
     }
 
     function sendCustomAiQuery() {
@@ -916,7 +848,7 @@
           <div class="mt-2.5 flex gap-2">
             <button onclick="event.stopPropagation(); openAiSheet(travelData['${dayKey}'].spots[${idx}])" 
                     class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 py-1.5 rounded-lg shadow-sm hover:bg-amber-100">
-              <span>✨</span> 呼叫 AI 導遊
+              <span>⚠️</span> 重點與避坑
             </button>
             <a href="${navUrl}" 
                target="_blank" 
