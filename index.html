@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>東京自由行導航助手</title>
   
-  <!-- PWA 設定 -->
+  <!-- PWA 設定（加到主畫面當 App） -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="東京行">
@@ -17,13 +17,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <style>
-    /* 強制給予明確高度，確保地圖百分之百能渲染出來不消失 */
+    /* 強制給予明確高度，確保地圖渲染順暢不反灰 */
     #map { 
       height: 40vh; 
-      min-height: 260px;
+      min-height: 270px;
       width: 100%; 
       z-index: 10; 
-      background-color: #e5e7eb;
+      background-color: #e2e8f0;
     }
     .scroll-touch { -webkit-overflow-scrolling: touch; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -55,7 +55,7 @@
     </div>
   </header>
 
-  <!-- 上半部：穩定圖資地圖（含順向連線） -->
+  <!-- 上半部：穩定圖資地圖（含順向路線連線） -->
   <div id="map"></div>
 
   <!-- 下半部：滾動行程卡片與採買清單 -->
@@ -64,7 +64,7 @@
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center">
         <span class="text-[11px] text-blue-600 font-bold uppercase" id="day-date"></span>
-        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">票券：72hr地鐵券 / Skyliner</span>
+        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">憑證：72hr地鐵券 / Skyliner</span>
       </div>
       <h2 class="text-sm font-bold text-slate-900 mt-0.5" id="day-title"></h2>
     </div>
@@ -122,7 +122,7 @@
   </div>
 
   <script>
-    // 匯率計算
+    // 匯率計算邏輯
     function toggleCalcModal() {
       const modal = document.getElementById('calc-modal');
       modal.classList.toggle('hidden');
@@ -148,7 +148,7 @@
       }
     }
 
-    // 核心行程資料集
+    // 核心行程資料集（全座標校對完成）
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -156,14 +156,15 @@
         spots: [
           {
             name: "藍水輕旅 (Blue Water Hotel)",
-            nameJp: "桃園市大園區高鐵北路",
-            lat: 25.0116,
-            lng: 121.2148,
+            nameJp: "桃園市大園區高鐵北路二段88號",
+            lat: 25.0185,
+            lng: 121.2185,
             time: "19:00~ 入住",
             stay: "過夜休息",
-            stepTip: "抵達櫃檯辦理 Check-in 時，務必立刻預約隔天早上的「桃機一航接駁車」！確認護照、eSIM憑證備妥。",
-            transit: "台中高鐵 ➡️ 桃園高鐵站 3 號出口，步行約 8 分鐘",
-            actionTip: "早點休息養精蓄銳，準備隔日早班機。"
+            stepTip: "抵達櫃檯辦理 Check-in 時，務必向櫃檯確認預約隔天早上的「桃機一航接駁車」！確認護照、實體網卡/eSIM憑證備妥。",
+            transit: "台中高鐵 ➡️ 桃園高鐵站 3 號或 5 號出口，步行約 8～10 分鐘抵達",
+            actionTip: "早點休息養精蓄銳，準備隔日 JX800 早班機。",
+            navQuery: "藍水輕旅"
           }
         ],
         shopping: []
@@ -181,7 +182,8 @@
             stay: "45 分鐘",
             stepTip: "出境後下到 B1 鐵道改札口，找【京成電鐵 (Keisei)】的「藍色售票機台」或人工櫃檯，出示 Klook QR Code 兌換 Skyliner 車票！",
             transit: "搭乘 12:40 Skyliner 直達京成上野（第 1 月台，車程 41 分鐘）",
-            actionTip: "領完票在旁邊自動販賣機買水，體驗西瓜卡手機逼一下感應！"
+            actionTip: "領完票在旁邊自動販賣機買水，體驗西瓜卡手機逼一下感應！",
+            navQuery: "成田國際機場 第二航廈"
           },
           {
             name: "APA Hotel Ueno Ekiminami",
@@ -190,9 +192,10 @@
             lng: 139.7758,
             time: "14:00 - 14:30",
             stay: "30 分鐘",
-            stepTip: "京成上野站「正面口」出站，往阿美橫町方向走 5 分鐘抵達飯店。",
+            stepTip: "京成上野站「正面口」出站，往阿美橫町方向步行 5 分鐘抵達飯店。",
             transit: "步行 5 分鐘",
-            actionTip: "櫃檯出示護照辦理入住/寄放行李，輕裝出發前往秋葉原。"
+            actionTip: "櫃檯出示護照辦理入住/寄放行李，輕裝出發前往秋葉原。",
+            navQuery: "APA Hotel Ueno Ekiminami"
           },
           {
             name: "秋葉原 Radio 會館",
@@ -201,9 +204,10 @@
             lng: 139.7719,
             time: "14:40 - 16:00",
             stay: "1.5 小時",
-            stepTip: "從飯店直接散步過去最快（900m 直線步行 11 分鐘）！若要搭車請認明「灰色圓圈 H (日比谷線) 仲御徒町站」，切勿走進綠色方框 JR！",
+            stepTip: "【直接散步最快】從飯店直走 900m 約 11 分鐘即達！若走累搭地鐵請認明「灰色圓圈 H (日比谷線) 仲御徒町站」，切勿走進綠色方框 JR！",
             transit: "步行 11 分鐘即達秋葉原電氣街口",
-            actionTip: "整棟 10 層樓全是正版模型、動漫周邊，可挑選喜歡的角色公仔。"
+            actionTip: "整棟 10 層樓全是正版模型、動漫公仔周邊，集中好逛。",
+            navQuery: "秋葉原ラジオ会館"
           },
           {
             name: "友都八喜 Akiba (Yodobashi)",
@@ -212,9 +216,10 @@
             lng: 139.7745,
             time: "16:00 - 17:00",
             stay: "1 小時",
-            stepTip: "秋葉原昭和通口旁超巨型 3C 商場。買電器滿 5,000 日圓需至退稅專屬櫃檯【Tax-Free】，出示護照正本直接扣 10% 現金稅額。",
-            transit: "秋葉原站前步行 1 分鐘",
-            actionTip: "耳機、相機、手錶或日本質感生活小家電。"
+            stepTip: "秋葉原昭和通口旁超巨型 3C 電器旗艦商場。買電器滿 5,000 日圓需至【Tax-Free】專屬櫃檯，出示護照正本直接折抵 10% 現金稅額。",
+            transit: "秋葉原站昭和通口步行 1 分鐘",
+            actionTip: "耳機、相機、手錶或日本高質感生活家電。",
+            navQuery: "ヨドバシカメラ マルチメディアAkiba"
           },
           {
             name: "二木之菓子 (阿美橫町)",
@@ -223,20 +228,22 @@
             lng: 139.7744,
             time: "17:00 - 18:20",
             stay: "1.2 小時",
-            stepTip: "阿美橫町必買零食批發店！分為兩棟（第一營業所與 Bic 館），在同棟買滿 5,000 日圓出示護照走「免稅櫃檯」，會以專用透明塑膠袋密封（在境內不能拆）。",
+            stepTip: "阿美橫町必買零食批發名店！滿 5,000 日圓出示護照走「免稅櫃檯」，會以專用透明塑膠袋密封（在境內不能拆封）。",
             transit: "從秋葉原漫步回上野阿美橫町（約 10 分鐘）",
-            actionTip: "採買完大包戰利品，先花 3 分鐘拿回 APA 房間放，再優雅去吃螃蟹大餐！"
+            actionTip: "採買完大包戰利品，先花 3 分鐘拿回 APA 房間放好，輕裝出發去吃螃蟹！",
+            navQuery: "二木の菓子 第一営業所"
           },
           {
-            name: "蟹道樂 上野店 (8F)",
+            name: "蟹道樂 上野店 (永藤大樓8F)",
             nameJp: "かに道楽 上野店 (永藤ビル 8F)",
-            lat: 35.7112,
-            lng: 139.7733,
+            lat: 35.71072,
+            lng: 139.77382,
             time: "19:00 - 21:00",
             stay: "2 小時",
-            stepTip: "認明永藤大樓搭電梯直上 8 樓。已預約 19:00，向店員出示訂位人姓名即可入座！",
-            transit: "從 APA 飯店步行僅 350m（約 4 分鐘）",
-            actionTip: "享用精緻螃蟹刺身、烤蟹肉、螃蟹火鍋與釜飯，吃完散步回飯店休息。"
+            stepTip: "【精準位置】位於中央通上的「永藤大樓 8F」，從飯店走過來僅 350m（約 4 分鐘），【千萬不要走到京成上野車站】！已預約 19:00，出示訂位人姓名入座。",
+            transit: "從 APA 飯店沿鐵路側往北走過涵洞即達，步行約 4 分鐘",
+            actionTip: "享用精緻螃蟹刺身、烤蟹肉、螃蟹火鍋與釜飯，吃完散步回飯店休息。",
+            navQuery: "かに道楽 上野店"
           }
         ],
         shopping: [
@@ -257,10 +264,11 @@
             stay: "2 小時",
             stepTip: "上野站走進地鐵，認明【橘色圓圈 G (銀座線)】，搭往淺草方向（車程 5 分鐘，1 號出口直達雷門）。全程刷 72hr 地鐵券！",
             transit: "銀座線 5 分鐘",
-            actionTip: "雷門巨大紅燈籠打卡 ➡️ 仲見世商店街吃花月堂波蘿麵包 ➡️ 本殿投 5 円祈福抽籤 ➡️ 午餐吃今半壽喜燒或炸牛元村。"
+            actionTip: "雷門巨大紅燈籠打卡 ➡️ 仲見世商店街吃花月堂波蘿麵包 ➡️ 本殿投 5 円祈福抽籤 ➡️ 午餐吃今半壽喜燒或炸牛元村。",
+            navQuery: "淺草寺 雷門"
           },
           {
-            name: "墨田水族館 / 晴空塔城",
+            name: "墨田水族館 / 晴空塔 Solamachi",
             nameJp: "すみだ水族館 / 東京ソラマチ",
             lat: 35.7100,
             lng: 139.8107,
@@ -268,18 +276,20 @@
             stay: "3 小時",
             stepTip: "從淺草站搭地鐵至「押上站 (晴空塔前)」，地下道直通 Solamachi 商場 5 樓進入墨田水族館。",
             transit: "東武/地鐵直達押上站（5 分鐘）",
-            actionTip: "室內吹冷氣看超萌麥哲倫企鵝水槽與水母大水槽，商場逛街休息喝咖啡。"
+            actionTip: "室內吹冷氣看超萌麥哲倫企鵝水槽與水母大水槽，商場逛街休息喝咖啡。",
+            navQuery: "すみだ水族館"
           },
           {
             name: "一頭牛燒肉 房家 上野六丁目店",
             nameJp: "一頭牛焼肉 房家 (ぼうや)",
-            lat: 35.7101,
-            lng: 139.7749,
+            lat: 35.7103,
+            lng: 139.7751,
             time: "18:30 - 20:30",
             stay: "2 小時",
             stepTip: "17:30 押上站搭【紫色圓圈 Z (半藏門線)】至三越前站轉【橘色圓圈 G (銀座線)】回上野。房家在阿美橫町旁，店員引導炭火現烤。",
             transit: "地鐵回上野約 20 分鐘，出站步行 3 分鐘",
-            actionTip: "已定案！專營整頭黑毛和牛購入，推薦盛合牛肉拼盤，吃飽走 3 分鐘回飯店休息。"
+            actionTip: "已定案！專營整頭黑毛和牛購入，推薦盛合牛肉拼盤，吃飽走 3 分鐘回 APA 飯店休息。",
+            navQuery: "一頭牛焼肉 房家 上野六丁目店"
           }
         ],
         shopping: [
@@ -300,7 +310,8 @@
             stay: "1.5 小時",
             stepTip: "從 APA 飯店走出來 2 分鐘。隱身在地下的懷舊昭和咖啡館，水晶吊燈與紅絲絨沙發。",
             transit: "步行 2 分鐘",
-            actionTip: "點厚鬆餅、現烤熱壓吐司與熱咖啡套餐，補足早晨能量。"
+            actionTip: "點厚鬆餅、現烤熱壓吐司與熱咖啡套餐，補足早晨能量。",
+            navQuery: "純喫茶 丘"
           },
           {
             name: "明治神宮 本殿",
@@ -311,7 +322,8 @@
             stay: "2 小時",
             stepTip: "上野搭【橘色 G 銀座線】至表參道站，原站轉【綠色 C 千代田線】至「明治神宮前(原宿)站」2 號出口出站。",
             transit: "地鐵乘車約 25 分鐘（全程 72hr 券覆蓋）",
-            actionTip: "進入巨大的木造大鳥居，碎石森林步道【走兩側被踩平的小徑最省腳力】！參拜本殿與購買結緣御守。"
+            actionTip: "進入巨大的木造大鳥居，碎石森林步道【走兩側被踩平的小徑最省腳力】！參拜本殿與購買結緣御守。",
+            navQuery: "明治神宮 本殿"
           },
           {
             name: "原宿竹下通散策",
@@ -322,18 +334,20 @@
             stay: "2 小時",
             stepTip: "神宮原宿口走出來對面就是竹下通。年輕潮流聖地，午餐品嚐周邊特色美食或咖啡輕食。",
             transit: "神宮原宿口步行 2 分鐘",
-            actionTip: "感受東京潮流文化，沿著貓街慢步往澀谷前進。"
+            actionTip: "感受東京潮流文化，沿著貓街慢步往澀谷前進。",
+            navQuery: "原宿竹下通"
           },
           {
-            name: "SHIBUYA SKY 展望台 (14F)",
+            name: "SHIBUYA SKY 展望台 (14F入口)",
             nameJp: "渋谷スクランブルスクエア 14F",
             lat: 35.6585,
             lng: 139.7023,
             time: "17:40 - 17:59 入場",
             stay: "1.5 小時",
-            stepTip: "【極度重要】預約票是 17:40-17:59，逾時直接作廢！14F 出示手機 QR 入場，搭電梯上 46F 【所有背包、帽子、圍巾必須鎖入 100円置物櫃（退幣式），身上只能拿手機或掛頸相機】！",
+            stepTip: "【極度重要】預約票是 17:40-17:59，逾時作廢！14F 出示手機 QR 入場，搭電梯上 46F 【所有背包、帽子、圍巾必須鎖入 100円置物櫃（退幣式），身上只能拿手機或掛頸相機】！",
             transit: "原宿漫步至澀谷約 15 分鐘（或搭地鐵 1 站）",
-            actionTip: "直達露天頂樓天台，享受東京落日夕陽 ➡️ 澀谷十字路口暮光 ➡️ 璀璨夜景的最美時段！"
+            actionTip: "直達露天頂樓天台，享受東京落日夕陽 ➡️ 澀谷十字路口暮光 ➡️ 璀璨夜景的最美時段！",
+            navQuery: "SHIBUYA SKY"
           },
           {
             name: "鳥貴族 澀谷文化村通店 (居酒屋)",
@@ -342,9 +356,10 @@
             lng: 139.6975,
             time: "19:30 - 21:30",
             stay: "2 小時",
-            stepTip: "全日本連鎖知名串燒居酒屋，全品項均一價（每盤約 370 日圓），平板有點餐中文介面！",
+            stepTip: "全日本連鎖知名串燒居酒屋，全品項均一價（每盤約 370 日圓），平板點餐有點餐中文介面！",
             transit: "從 SCRAMBLE SQUARE 步行約 6 分鐘",
-            actionTip: "現烤雞肉串燒拼盤、炸雞皮、生啤酒慶祝！吃完從澀谷搭銀座線直達回上野休息。"
+            actionTip: "現烤雞肉串燒拼盤、炸雞皮、生啤酒慶祝！吃完從澀谷搭銀座線直達回上野休息。",
+            navQuery: "鳥貴族 渋谷文化村通り店"
           }
         ],
         shopping: [
@@ -364,7 +379,8 @@
             stay: "1 小時 20 分",
             stepTip: "【避坑關鍵】09:30 APA 退房寄放大行李。10:00 準時進入多慶屋 2F/3F 藥妝館！兩人分工抓藥妝與零食，10:30 排 Tax-Free 免稅櫃檯，必須出示護照正本辦理退稅！",
             transit: "從 APA 步行 7 分鐘抵達",
-            actionTip: "買完提戰利品回飯店拿大行李，11:45 走到京成上野站。"
+            actionTip: "買完提戰利品回飯店拿大行李，11:45 走到京成上野站。",
+            navQuery: "多慶屋 TAKEYA 1"
           },
           {
             name: "京成上野站 (Skyliner)",
@@ -375,7 +391,8 @@
             stay: "搭車",
             stepTip: "在藍色機台或人工售票處劃位，搭乘 12:00 Skyliner（12:42 抵達第二航廈，起飛前 2.5 小時最安全）！",
             transit: "回飯店取行李後步行 5 分鐘抵達車站",
-            actionTip: "在車上放鬆休息 41 分鐘，準備抵達機場。"
+            actionTip: "在車上放鬆休息 41 分鐘，準備抵達機場。",
+            navQuery: "京成上野站"
           },
           {
             name: "成田機場 第二航廈 3F 出發大廳",
@@ -386,7 +403,8 @@
             stay: "登機手續",
             stepTip: "【出境 5 步 SOP】\n1. 機場第2大樓站 B1 搭手扶梯直上 3F 大廳。\n2. 看電視牆星宇 JX803 櫃檯（常為 Q/R）出示護照託運行李（看螢幕過 X 光再走）。\n3. 過中央安檢（平板/行動電源放籃子、液體瓶全裝透明夾鏈袋）。\n4. 海關機台刷護照核對退稅 ➡️ 臉部辨識自動通關。\n5. 管制區 Fa-So-La 免稅店買伴手禮 ➡️ 14:50 登機門登機！",
             transit: "出閘門手扶梯直達 3 樓出發大廳",
-            actionTip: "星宇 JX803 (15:20 - 18:00) 滿載戰利品返抵桃園第一航廈。"
+            actionTip: "星宇 JX803 (15:20 - 18:00) 滿載戰利品返抵桃園第一航廈。",
+            navQuery: "成田國際機場 第二航廈"
           }
         ],
         shopping: [
@@ -397,7 +415,7 @@
       }
     };
 
-    // 初始化地圖：使用全平台最穩定的官方圖資
+    // 初始化地圖：採用全球最穩定的標準圖資
     let map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
     
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -443,12 +461,16 @@
         });
 
         const marker = L.marker([spot.lat, spot.lng], { icon: customIcon }).addTo(markersLayer);
+        
+        // 核心修正：導航連結改用精準地標名稱，避免 Google Maps 飄移
+        const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(spot.navQuery || spot.name)}`;
+        
         const popupContent = `
           <div style="font-size:12px;min-width:180px;">
             <b style="color:#1D4ED8;font-size:13px;">${idx + 1}. ${spot.name}</b><br>
             <span style="color:#64748B;font-family:monospace;">${spot.nameJp}</span>
             <div style="margin-top:4px;font-weight:bold;color:#0F172A;">⏱️ 停留：${spot.stay}</div>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" 
+            <a href="${navUrl}" 
                target="_blank" 
                style="display:block;background:#2563EB;color:white;text-align:center;padding:5px 0;border-radius:6px;margin-top:6px;text-decoration:none;font-weight:bold;">
                📍 Google Maps 導航
@@ -484,7 +506,7 @@
           </div>
 
           <div class="mt-2 flex justify-end">
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" 
+            <a href="${navUrl}" 
                target="_blank" 
                onclick="event.stopPropagation();"
                class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
@@ -510,7 +532,7 @@
         map.fitBounds(markersLayer.getBounds(), { padding: [35, 35] });
       }
 
-      // 核心修正：強制重新計算地圖尺寸，避免地圖變灰或消失
+      // 強制重新計算地圖尺寸，避免地圖變灰或消失
       setTimeout(() => {
         map.invalidateSize();
       }, 100);
