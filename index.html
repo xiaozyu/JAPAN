@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>東京自由行導航助手</title>
   
-  <!-- PWA 設定（可加到手機主畫面當 App） -->
+  <!-- PWA 設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="東京行">
@@ -17,13 +17,19 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <style>
-    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    #map { height: 42vh; width: 100%; z-index: 10; }
+    /* 強制給予明確高度，確保地圖百分之百能渲染出來不消失 */
+    #map { 
+      height: 40vh; 
+      min-height: 260px;
+      width: 100%; 
+      z-index: 10; 
+      background-color: #e5e7eb;
+    }
     .scroll-touch { -webkit-overflow-scrolling: touch; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<body class="bg-slate-100 flex flex-col h-full text-slate-800 select-none">
+<body class="bg-slate-100 flex flex-col h-screen overflow-hidden text-slate-800 select-none">
 
   <!-- 頂部導航欄 -->
   <header class="bg-slate-900 text-white shadow-md z-30 shrink-0">
@@ -42,18 +48,18 @@
     <!-- 日期切換 Tab -->
     <div class="flex overflow-x-auto scroll-touch p-2 gap-1.5 text-xs font-semibold no-scrollbar" id="day-tabs">
       <button onclick="switchDay('day0')" id="tab-day0" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D0 10/8</button>
-      <button onclick="switchDay('day1')" id="tab-day1" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-blue-600 text-white font-bold">D1 上野/秋葉原</button>
+      <button onclick="switchDay('day1')" id="tab-day1" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-blue-600 text-white font-bold shadow">D1 上野/秋葉原</button>
       <button onclick="switchDay('day2')" id="tab-day2" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D2 淺草/晴空塔</button>
       <button onclick="switchDay('day3')" id="tab-day3" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D3 神宮/SHIBUYA</button>
       <button onclick="switchDay('day4')" id="tab-day4" class="tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">D4 多慶屋/返台</button>
     </div>
   </header>
 
-  <!-- 上半部：清爽高對比地圖（含順向路線連線） -->
+  <!-- 上半部：穩定圖資地圖（含順向連線） -->
   <div id="map"></div>
 
   <!-- 下半部：滾動行程卡片與採買清單 -->
-  <main class="flex-1 overflow-y-auto scroll-touch p-3 space-y-3 z-10 bg-slate-100 pb-12">
+  <main class="flex-1 overflow-y-auto scroll-touch p-3 space-y-3 z-10 bg-slate-100 pb-16">
     <!-- 今日核心概覽 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center">
@@ -77,7 +83,7 @@
 
   <!-- 彈出式：日幣/台幣自動換算機 Modal -->
   <div id="calc-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl p-4 w-full max-w-xs shadow-2xl border border-slate-200 space-y-3 animate-fade-in">
+    <div class="bg-white rounded-2xl p-4 w-full max-w-xs shadow-2xl border border-slate-200 space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1">
           <span>💴</span> 日幣換算台幣
@@ -116,7 +122,7 @@
   </div>
 
   <script>
-    // 匯率計算邏輯
+    // 匯率計算
     function toggleCalcModal() {
       const modal = document.getElementById('calc-modal');
       modal.classList.toggle('hidden');
@@ -142,7 +148,7 @@
       }
     }
 
-    // 核心行程資料集（含 SOP、機台顏色、中日站名、採買建議）
+    // 核心行程資料集
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -391,13 +397,12 @@
       }
     };
 
-    // 初始化乾淨高對比 CartoDB 地圖
-    const map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
+    // 初始化地圖：使用全平台最穩定的官方圖資
+    let map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
     
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      subdomains: 'abcd',
-      attribution: '© CartoDB'
+      attribution: '© OpenStreetMap'
     }).addTo(map);
 
     let markersLayer = L.featureGroup().addTo(map);
@@ -429,7 +434,7 @@
       data.spots.forEach((spot, idx) => {
         latlngs.push([spot.lat, spot.lng]);
 
-        // 自訂亮色號碼地圖 Marker
+        // 自訂醒目號碼標記
         const customIcon = L.divIcon({
           className: 'custom-pin',
           html: `<div style="background:#2563EB;color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 3px 6px rgba(0,0,0,0.4);">${idx + 1}</div>`,
@@ -439,16 +444,13 @@
 
         const marker = L.marker([spot.lat, spot.lng], { icon: customIcon }).addTo(markersLayer);
         const popupContent = `
-          <div style="font-size:12px;min-width:190px;">
+          <div style="font-size:12px;min-width:180px;">
             <b style="color:#1D4ED8;font-size:13px;">${idx + 1}. ${spot.name}</b><br>
             <span style="color:#64748B;font-family:monospace;">${spot.nameJp}</span>
             <div style="margin-top:4px;font-weight:bold;color:#0F172A;">⏱️ 停留：${spot.stay}</div>
-            <div style="margin-top:2px;color:#334155;background:#F1F5F9;padding:4px;border-radius:4px;font-size:11px;">
-              ${spot.stepTip.substring(0, 70)}...
-            </div>
             <a href="https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lng}" 
                target="_blank" 
-               style="display:block;background:#2563EB;color:white;text-align:center;padding:6px 0;border-radius:6px;margin-top:6px;text-decoration:none;font-weight:bold;">
+               style="display:block;background:#2563EB;color:white;text-align:center;padding:5px 0;border-radius:6px;margin-top:6px;text-decoration:none;font-weight:bold;">
                📍 Google Maps 導航
             </a>
           </div>
@@ -493,7 +495,7 @@
         spotsListEl.appendChild(card);
       });
 
-      // 核心功能：點和點之間自動畫出導航連線
+      // 畫出點跟點之間的導航連線
       if (latlngs.length > 1) {
         routePolyline = L.polyline(latlngs, {
           color: '#2563EB',
@@ -505,8 +507,13 @@
       }
 
       if (latlngs.length > 0) {
-        map.fitBounds(markersLayer.getBounds(), { padding: [40, 40] });
+        map.fitBounds(markersLayer.getBounds(), { padding: [35, 35] });
       }
+
+      // 核心修正：強制重新計算地圖尺寸，避免地圖變灰或消失
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
 
       // 採買清單渲染
       const shopCard = document.getElementById('shopping-card');
@@ -537,7 +544,11 @@
       }
     }
 
-    window.onload = () => switchDay('day1');
+    // 頁面載入完成後初始化
+    window.addEventListener('load', () => {
+      switchDay('day1');
+      setTimeout(() => map.invalidateSize(), 300);
+    });
   </script>
 </body>
 </html>
