@@ -27,11 +27,6 @@
     }
     .scroll-touch { -webkit-overflow-scrolling: touch; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
-    .ai-bubble {
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.6;
-    }
   </style>
 </head>
 <body class="bg-slate-100 flex flex-col h-screen overflow-hidden text-slate-800 select-none">
@@ -44,15 +39,12 @@
         <span class="font-bold text-xs tracking-wider" id="header-title">東京自由行導航</span>
       </div>
       
-      <!-- 右上角快捷按鈕群 -->
+      <!-- 右上角快捷功能 -->
       <div class="flex items-center gap-1.5">
-        <button onclick="promptApiKey()" id="api-key-btn" class="flex items-center gap-1 bg-rose-900 border border-rose-700 text-rose-200 font-bold px-2 py-1 rounded-full text-[11px] shadow transition">
-          <span>🔑 設Key</span>
+        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
+          <span>📲 QR 憑證</span>
         </button>
-        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded-full text-[11px] shadow transition">
-          <span>📲 憑證</span>
-        </button>
-        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-1 rounded-full text-[11px] shadow transition">
+        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
           <span>💴 匯率</span>
         </button>
       </div>
@@ -68,11 +60,12 @@
     </div>
   </header>
 
-  <!-- 上半部：穩定圖資地圖 -->
+  <!-- 上半部：穩定圖資地圖（含順向路線連線） -->
   <div id="map"></div>
 
   <!-- 下半部：滾動行程卡片與採買清單 -->
   <main class="flex-1 overflow-y-auto scroll-touch p-3 space-y-3 z-10 bg-slate-100 pb-16">
+    <!-- 今日核心概覽 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center">
         <span class="text-[11px] text-blue-600 font-bold uppercase" id="day-date"></span>
@@ -86,61 +79,12 @@
 
     <!-- 購物清單區塊 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200" id="shopping-card">
-      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-        <span class="flex items-center gap-1.5">🛍️ 本日推薦必買清單 & 預算參考</span>
-        <span class="text-[10px] text-slate-400 font-normal">滿5,000円免稅</span>
+      <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <span>🛍️</span> 本日推薦必買 & 退稅注意事項
       </h3>
       <div class="space-y-2 text-xs" id="shopping-list"></div>
     </div>
   </main>
-
-  <!-- 彈出式：Gemini AI 私人導遊抽屜 -->
-  <div id="ai-guide-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex flex-col justify-end hidden">
-    <div class="bg-white rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl border-t border-slate-200">
-      <div class="px-4 py-3 border-b flex justify-between items-center bg-slate-50 rounded-t-3xl shrink-0">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">✨</span>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900" id="ai-modal-spot-name">景點導遊</h3>
-            <span class="text-[10px] text-slate-500 font-mono" id="ai-modal-spot-jp"></span>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="toggleSpeech()" id="speech-btn" class="text-xs bg-slate-200 text-slate-700 font-bold px-2 py-1 rounded-full flex items-center gap-1">
-            <span>🔊 朗讀</span>
-          </button>
-          <button onclick="closeAiGuide()" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-1">✕</button>
-        </div>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs text-slate-700 ai-bubble" id="ai-content-area">
-        <div id="ai-loading" class="flex flex-col items-center justify-center py-8 space-y-2 text-slate-400">
-          <div class="w-7 h-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span class="text-xs font-semibold" id="ai-loading-text">Gemini 正在為兩位提取精確攻略與避坑 SOP...</span>
-        </div>
-        <div id="ai-response-text" class="hidden leading-relaxed"></div>
-      </div>
-
-      <!-- 快速追問按鈕列 -->
-      <div class="px-4 py-1.5 bg-slate-50 border-t flex gap-1.5 overflow-x-auto no-scrollbar shrink-0 text-[11px]">
-        <button onclick="quickAsk('這裡最推薦我們兩人點什麼吃？菜單招牌是什麼？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍽️ 老饕雙人點法</button>
-        <button onclick="quickAsk('現場有什麼容易踩雷的細節、排隊或退稅避坑 SOP？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">⚠️ 避坑重點細節</button>
-        <button onclick="quickAsk('這裡推薦怎麼拍我們兩人的情侶合照？教我們站位和角度！')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">📸 雙人情侶合照</button>
-        <button onclick="quickAsk('如果我們現在不太餓，只想吃點小點心或喝咖啡，附近推薦去哪？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍵 不太餓吃什麼</button>
-        <button onclick="quickAsk('如果肚子很餓，這附近有什麼大份量美食推薦？')" class="bg-white border rounded-full px-2.5 py-1 text-slate-600 shrink-0 shadow-sm">🍜 很餓換吃什麼</button>
-      </div>
-
-      <!-- 自由提問對話框 -->
-      <div class="p-3 border-t bg-white flex gap-2 shrink-0 pb-safe">
-        <input type="text" id="ai-user-query" placeholder="想問導遊什麼？(如: 這附近哪裡有洗手間、退稅櫃檯幾樓)"
-               class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
-               onkeydown="if(event.key==='Enter') submitCustomQuestion()">
-        <button onclick="submitCustomQuestion()" class="bg-blue-600 text-white font-bold px-3 py-2 rounded-xl text-xs shrink-0 shadow">
-          發送
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- 彈出式：QR Code / 電子憑證專區 Modal -->
   <div id="qr-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
@@ -152,30 +96,33 @@
         <button onclick="toggleQrModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl leading-none">✕</button>
       </div>
 
+      <!-- Visit Japan Web 區塊 -->
       <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-blue-900">🇯🇵 Visit Japan Web (入境QR)</span>
           <span class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded font-bold" id="vjw-status">尚未上傳</span>
         </div>
-        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，截圖 QR 碼並點擊下方按鈕上傳儲存，出境日本免聯網一鍵出示！</p>
+        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，將入境與海關申報 QR 碼截圖上傳，保存在手機內出國免聯網也能一秒出示！</p>
         
         <div id="vjw-preview-area" class="hidden text-center py-1">
           <img id="vjw-img" src="" alt="VJW QR Code" class="mx-auto max-h-48 rounded border border-blue-300 shadow">
-          <button onclick="removeVjwImg()" class="mt-1 text-[11px] text-red-600 font-bold">刪除重傳</button>
+          <button onclick="removeVjwImg()" class="mt-1 text-[11px] text-red-600 font-bold">刪除重新上傳</button>
         </div>
 
         <label class="block w-full text-center py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs cursor-pointer hover:bg-blue-700 transition" id="vjw-upload-btn">
-          <span>📤 上傳 VJW 截圖 (保存在手機)</span>
+          <span>📤 上傳 VJW 截圖 (保存在本機)</span>
           <input type="file" accept="image/*" class="hidden" onchange="handleVjwUpload(event)">
         </label>
       </div>
 
+      <!-- SHIBUYA SKY 憑證區塊 -->
       <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-3">
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-purple-900">🎫 SHIBUYA SKY 門票 (大人×2)</span>
           <span class="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-bold">10/11 17:40~17:59</span>
         </div>
         
+        <!-- 票券 1 -->
         <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
           <div class="text-[11px] font-bold text-slate-800 flex justify-between">
             <span>票券 1 (陳政宇)</span>
@@ -188,6 +135,7 @@
           </div>
         </div>
 
+        <!-- 票券 2 -->
         <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
           <div class="text-[11px] font-bold text-slate-800 flex justify-between">
             <span>票券 2 (隨行人員)</span>
@@ -244,212 +192,13 @@
   </div>
 
   <script>
-    let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
-
-    function checkApiKeyStatus() {
-      const btn = document.getElementById('api-key-btn');
-      if (GEMINI_API_KEY) {
-        btn.innerHTML = '<span>🔑 Key✓</span>';
-        btn.className = 'flex items-center gap-1 bg-emerald-800 border border-emerald-600 text-emerald-200 font-bold px-2 py-1 rounded-full text-[11px] shadow transition';
-      } else {
-        btn.innerHTML = '<span>🔑 設Key</span>';
-        btn.className = 'flex items-center gap-1 bg-rose-900 border border-rose-700 text-rose-200 font-bold px-2 py-1 rounded-full text-[11px] shadow transition';
-      }
-    }
-
-    function promptApiKey() {
-      const key = prompt('請貼上您的 Google Gemini API Key：', GEMINI_API_KEY);
-      if (key !== null) {
-        GEMINI_API_KEY = key.trim();
-        localStorage.setItem('gemini_api_key', GEMINI_API_KEY);
-        checkApiKeyStatus();
-        if (GEMINI_API_KEY) alert('API Key 設定完成！');
-      }
-    }
-
-    // 核心系統指令：拒絕客套廢話、大篇幅強化現場避坑 SOP
-    const SYSTEM_TRAVEL_KNOWLEDGE = `
-你現在是兩位旅客（情侶同行）在東京 4 天 3 夜（2026/10/09~10/12）的隨身硬核在地導遊。
-
-【關鍵溝通規則】
-1. 嚴禁任何形式的廢話客套或開場白（絕對不要出現「哈囉兩位」、「歡迎來到...」、「今天我們要去...」等廢話），開頭直接切入第一項乾貨！
-2. 10/12 是女友生日！若是 10/12 行程，在結尾加一行高情商生日彩蛋即可，不佔用正文版面。
-3. 大幅強化【現場避坑注意與操作SOP】：詳細寫出「哪裡排隊/洗手間位置/避開人潮捷徑/機台按法/退稅封袋禁忌/置物櫃細節」。
-4. 面向兩人：餐點推薦以「兩人分食嚐鮮」為準；拍照以「兩人一起合照站位」為主。
-
-【固定輸出模組】
-請嚴格依序輸出以下 4 個區塊：
-1. ⚠️【現場避坑注意與防呆SOP】：（核心重點！條列 2~3 點最容易踩雷、排隊避坑、洗手間、置物櫃或退稅規則）
-2. 🍽️【老饕雙人吃法 / 推薦必買】：（直接標出：招牌品項 + JPY金額/NT金額 + 兩人分食點法）
-3. 📸【情侶雙人合照出片技巧】：（具體教兩人站哪裡、自拍棒角度或請路人拍的構圖）
-4. 🧭【下一站精準動線】：（散步幾分鐘，或搭 Metro 哪條線，提醒能否刷 72hr 地鐵券）
-`;
-
-    let currentSpotContext = null;
-    let isSpeaking = false;
-
-    function openAiGuide(spot) {
-      if (!GEMINI_API_KEY) {
-        promptApiKey();
-        if (!GEMINI_API_KEY) return;
-      }
-
-      currentSpotContext = spot;
-      document.getElementById('ai-modal-spot-name').innerText = spot.name;
-      document.getElementById('ai-modal-spot-jp').innerText = spot.nameJp;
-      
-      const modal = document.getElementById('ai-guide-modal');
-      modal.classList.remove('hidden');
-
-      const initialPrompt = `我們兩個人現在行程在【${spot.name}】（${spot.nameJp}），預計停留：${spot.stay}。
-請立刻給出無廢話、硬核的深度攻略，特別加強現場避坑與排隊防呆 SOP。`;
-
-      fetchGeminiGuide(initialPrompt);
-    }
-
-    function closeAiGuide() {
-      document.getElementById('ai-guide-modal').classList.add('hidden');
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-      isSpeaking = false;
-      document.getElementById('speech-btn').innerText = '🔊 朗讀';
-    }
-
-    // 智能自動重試機制（徹底解決 429 忙線與偶發失敗）
-    async function fetchWithRetry(url, options, maxRetries = 2) {
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-          const res = await fetch(url, options);
-          if (res.status === 429 || res.status === 503) {
-            // 碰到 429 頻率限制或 503 伺服器忙碌，等待後自動重發
-            if (attempt < maxRetries) {
-              await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
-              continue;
-            }
-          }
-          return res;
-        } catch (e) {
-          if (attempt < maxRetries) {
-            await new Promise(r => setTimeout(r, 1000));
-            continue;
-          }
-          throw e;
-        }
-      }
-    }
-
-    // 核心 API 請求：優先使用極穩定的 gemini-2.5-flash，並帶自動重試
-    async function fetchGeminiGuide(userPrompt) {
-      const loading = document.getElementById('ai-loading');
-      const responseEl = document.getElementById('ai-response-text');
-      const loadingText = document.getElementById('ai-loading-text');
-      
-      loading.classList.remove('hidden');
-      responseEl.classList.add('hidden');
-      loadingText.innerText = 'Gemini 正在為兩位提取精確攻略與避坑 SOP...';
-
-      // 依序排列穩定度最高的模型
-      const modelCandidates = [
-        'gemini-2.5-flash',
-        'gemini-3-flash-preview',
-        'gemini-2.0-flash',
-        'gemini-2.5-pro'
-      ];
-      let lastError = null;
-      let reply = null;
-
-      for (const model of modelCandidates) {
-        try {
-          const response = await fetchWithRetry(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
-            {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'x-goog-api-key': GEMINI_API_KEY
-              },
-              body: JSON.stringify({
-                systemInstruction: {
-                  parts: [{ text: SYSTEM_TRAVEL_KNOWLEDGE }]
-                },
-                contents: [{ parts: [{ text: userPrompt }] }]
-              })
-            }
-          );
-
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            lastError = errData.error?.message || `HTTP ${response.status}`;
-            continue; // 切換下一個模型
-          }
-
-          const data = await response.json();
-          if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            reply = data.candidates[0].content.parts[0].text;
-            break;
-          }
-        } catch (err) {
-          lastError = err.message;
-        }
-      }
-
-      loading.classList.add('hidden');
-      responseEl.classList.remove('hidden');
-
-      if (reply) {
-        responseEl.innerHTML = reply.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-      } else {
-        responseEl.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700">
-          <b>連線暫時忙碌：</b>${lastError || '未取得回應'}<br>
-          <span class="text-[11px] text-rose-500">系統已嘗試自動切換備援線路，請點下方快速追問重試一次即可。</span>
-        </div>`;
-      }
-    }
-
-    function quickAsk(question) {
-      if (!currentSpotContext) return;
-      const fullPrompt = `我們現在在行程景點【${currentSpotContext.name}】（${currentSpotContext.nameJp}）。${question}。不要廢話，直接給具體建議。`;
-      fetchGeminiGuide(fullPrompt);
-    }
-
-    function submitCustomQuestion() {
-      const input = document.getElementById('ai-user-query');
-      const val = input.value.trim();
-      if (!val) return;
-      input.value = '';
-      quickAsk(val);
-    }
-
-    function toggleSpeech() {
-      if (!window.speechSynthesis) {
-        alert('您的瀏覽器不支援語音朗讀功能');
-        return;
-      }
-
-      if (isSpeaking) {
-        window.speechSynthesis.cancel();
-        isSpeaking = false;
-        document.getElementById('speech-btn').innerText = '🔊 朗讀';
-      } else {
-        const textToRead = document.getElementById('ai-response-text').innerText;
-        if (!textToRead) return;
-
-        const utterance = new SpeechSynthesisUtterance(textToRead);
-        utterance.lang = 'zh-TW';
-        utterance.rate = 1.0;
-        utterance.onend = () => {
-          isSpeaking = false;
-          document.getElementById('speech-btn').innerText = '🔊 朗讀';
-        };
-        window.speechSynthesis.speak(utterance);
-        isSpeaking = true;
-        document.getElementById('speech-btn').innerText = '⏹️ 停止';
-      }
-    }
-
+    // QR Code Modal 開關
     function toggleQrModal() {
-      document.getElementById('qr-modal').classList.toggle('hidden');
+      const modal = document.getElementById('qr-modal');
+      modal.classList.toggle('hidden');
     }
 
+    // Visit Japan Web 圖片上傳與 LocalStorage 存取
     function handleVjwUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -490,6 +239,7 @@
       }
     }
 
+    // 匯率換算
     function toggleCalcModal() {
       const modal = document.getElementById('calc-modal');
       modal.classList.toggle('hidden');
@@ -515,6 +265,7 @@
       }
     }
 
+    // 完整 5 天行程資料庫
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -620,15 +371,13 @@
             stay: "2 小時",
             stepTip: "【精準位置】位於中央通上的「永藤大樓 8F」，從飯店走過來僅 350m（約 4 分鐘），【千萬不要走到京成上野車站】！已預約 19:00，出示訂位人姓名入座。",
             transit: "從 APA 飯店沿鐵路側往北走過涵洞即達，步行約 4 分鐘",
-            actionTip: "招牌神樂套餐（約8,250円）或滿月會席（約13,200円），享受火鍋蛋花雜炊與烤蟹！",
+            actionTip: "享用精緻螃蟹刺身、烤蟹肉、螃蟹火鍋與釜飯，吃完散步回飯店休息。",
             navQuery: "かに道楽 上野店"
           }
         ],
         shopping: [
-          { name: "二木之菓子 日本限定零食/米果綜合包", jpy: 5500, note: "阿美橫町第一營業所，滿5,000円出示護照免稅" },
-          { name: "日東紅茶皇家奶茶包 / 辻利抹茶粉", jpy: 1200, note: "辦公室與家庭沖泡必搶名物" },
-          { name: "磯燒干貝糖 (大包裝)", jpy: 2800, note: "二木之菓子下酒神物，送禮自用兩相宜" },
-          { name: "Panasonic / 吹風機或保溫瓶", jpy: 16800, note: "友都八喜 Akiba 專屬免稅櫃檯現省 10%" }
+          { name: "二木之菓子 日本限定零食/米果", jpy: 5500, note: "滿 5,000 円免稅，需出示護照正本，密封袋境內勿拆" },
+          { name: "日東紅茶奶茶包 / 辻利抹茶粉", jpy: 1200, note: "辦公室與家庭沖泡首選" }
         ]
       },
       day2: {
@@ -668,15 +417,13 @@
             stay: "2 小時",
             stepTip: "17:30 押上站搭【紫色圓圈 Z (半藏門線)】至三越前站轉【橘色圓圈 G (銀座線)】回上野。房家在阿美橫町旁，店員引導炭火現烤。",
             transit: "地鐵回上野約 20 分鐘，出站步行 3 分鐘",
-            actionTip: "必點房家名物「絕對盛」（300g 約2,728円），搭配盛岡手打冷麵與生啤酒！",
+            actionTip: "已定案！專營整頭黑毛和牛購入，推薦盛合牛肉拼盤，吃飽走 3 分鐘回 APA 飯店休息。",
             navQuery: "一頭牛焼肉 房家 上野六丁目店"
           }
         ],
         shopping: [
-          { name: "花月堂 元祖波蘿麵包 (2個)", jpy: 560, note: "淺草寺本堂左側，外酥內軟，剛出爐現吃" },
-          { name: "晴空塔限定版香蕉蛋糕 Tokyo Banana", jpy: 1600, note: "晴空塔 Solamachi 1F/4F 限定豹紋包裝" },
-          { name: "墨田水族館 企鵝抱枕/水母夜燈", jpy: 2400, note: "水族館出口紀念品店，質感極佳" },
-          { name: "祇園辻利 晴空塔限定抹茶霜淇淋", jpy: 680, note: "Solamachi 6F 濃厚系抹茶名店" }
+          { name: "晴空塔限定香蕉蛋糕 Tokyo Banana", jpy: 1600, note: "豹紋/特定限定圖案" },
+          { name: "水族館企鵝玩偶周邊", jpy: 2200, note: "精緻紀念品" }
         ]
       },
       day3: {
@@ -745,15 +492,12 @@
           }
         ],
         shopping: [
-          { name: "明治神宮 幸福開運御守 / 結緣守", jpy: 1000, note: "本殿旁神札所，送長輩或情侶保平安" },
-          { name: "SHIBUYA SKY 限定晴雨傘/夜景明信片", jpy: 1800, note: "46F 紀念品店，展望台獨賣" },
-          { name: "原宿竹下通 Marion 可麗餅", jpy: 650, note: "草莓鮮奶油經典款，邊走邊吃" },
-          { name: "澀谷 SCRAMBLE SQUARE 專櫃香氛/彩妝", jpy: 6800, note: "百貨退稅櫃檯可合併辦理免稅" }
+          { name: "明治神宮 祈福御守", jpy: 1000, note: "神社境內無免稅，自用或送長輩保平安" }
         ]
       },
       day4: {
         date: "10/12 (週一)",
-        title: "多慶屋掃貨・Skyliner・成田 T2 SOP 返台 (🎂女友生日)",
+        title: "多慶屋掃貨・Skyliner・成田 T2 SOP 返台",
         spots: [
           {
             name: "多慶屋 TAKEYA 1",
@@ -793,15 +537,14 @@
           }
         ],
         shopping: [
-          { name: "合利他命 EX Plus 270錠 (強效維他命)", jpy: 5980, note: "多慶屋 2F 藥妝必備，滿 5,000 円出示護照免稅" },
-          { name: "大正百保能感冒微粒 (44包)", jpy: 1480, note: "多慶屋家庭常備藥，每人限購數量依現場為主" },
-          { name: "EVE QUICK 止痛藥 (40錠)", jpy: 1180, note: "藍色包裝，頭痛經痛必囤神藥" },
-          { name: "🎂 生日驚喜：Royce 生巧克力 / 白色戀人", jpy: 3200, note: "成田 T2 管制區 Fa-So-La 免稅店，機上慶生甜點" },
-          { name: "成田機場限定 獺祭純米大吟釀 二割三分", jpy: 5800, note: "管制區免稅直購免手提行李限制" }
+          { name: "合利他命 EX Plus 270錠", jpy: 5980, note: "多慶屋 2F 藥妝，滿 5,000 円出示護照免稅" },
+          { name: "大正百保能感冒微粒 / EVE 止痛藥", jpy: 2600, note: "家庭必備常備藥" },
+          { name: "白色戀人 / Royce 生巧克力", jpy: 3200, note: "成田 T2 管制區 Fa-So-La 免稅店直購免稅" }
         ]
       }
     };
 
+    // 初始化地圖
     let map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
     
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -884,16 +627,12 @@
             </div>
           </div>
 
-          <div class="mt-2.5 flex items-center justify-between gap-2 border-t pt-2">
-            <button onclick="event.stopPropagation(); openAiGuide(${JSON.stringify(spot).replace(/"/g, '&quot;')})" 
-                    class="flex items-center gap-1 text-[11px] font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg shadow hover:opacity-90 transition">
-              <span>✨</span> AI 導遊解說
-            </button>
+          <div class="mt-2 flex justify-end">
             <a href="${navUrl}" 
                target="_blank" 
                onclick="event.stopPropagation();"
                class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
-               <span>📍</span> 路線導航
+               <span>📍</span> 開啟 Google Maps 路線導航
             </a>
           </div>
         `;
@@ -946,13 +685,20 @@
       }
     }
 
+    // 依序排列穩定度最高、無廢棄問題的模型陣列
+    const modelCandidates = [
+      'gemini-2.5-flash',
+      'gemini-3.1-pro-preview',
+      'gemini-2.0-flash'
+    ];
+
     window.addEventListener('load', () => {
       switchDay('day1');
       renderVjw();
-      checkApiKeyStatus();
       setTimeout(() => map.invalidateSize(), 300);
     });
 
+    // 註冊 Service Worker 啟用 PWA 安裝
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');
     }
