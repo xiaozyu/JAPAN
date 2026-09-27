@@ -41,10 +41,10 @@
       
       <!-- 右上角快捷功能 -->
       <div class="flex items-center gap-1.5">
-        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
-          <span>📲 QR 憑證</span>
+        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded-full text-xs shadow transition">
+          <span>📲 QR</span>
         </button>
-        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
+        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2 py-1 rounded-full text-xs shadow transition">
           <span>💴 匯率</span>
         </button>
       </div>
@@ -86,6 +86,48 @@
     </div>
   </main>
 
+  <!-- 🌟 核心整合：AI 導遊諮詢抽屜 (Bottom Sheet) 🌟 -->
+  <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[85vh] flex flex-col">
+    <!-- 頂部拖曳把手與標題 -->
+    <div class="p-3 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-amber-500 text-base">✨</span>
+        <div>
+          <h3 class="text-xs font-bold text-slate-900" id="ai-spot-name">景點名稱</h3>
+          <p class="text-[10px] text-slate-500 font-mono" id="ai-spot-jp">日文名稱</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="speakAiReply()" class="text-[11px] bg-slate-200 hover:bg-slate-300 px-2 py-1 rounded-full text-slate-700 flex items-center gap-1 font-bold">
+          <span>🔊</span> 朗讀
+        </button>
+        <button onclick="closeAiSheet()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none p-1">✕</button>
+      </div>
+    </div>
+
+    <!-- 快速提問標籤 -->
+    <div class="flex gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0 border-b bg-white text-[11px]">
+      <button onclick="askAiGuide('老饕雙人點法推薦')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2.5 py-1 rounded-full border">🍽️ 老饕雙人點法</button>
+      <button onclick="askAiGuide('避坑重點與細節注意事項')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2.5 py-1 rounded-full border">⚠️ 避坑重點細節</button>
+      <button onclick="askAiGuide('情侶最佳合照角度與拍攝點')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2.5 py-1 rounded-full border">📸 雙人情侶合照</button>
+      <button onclick="askAiGuide('附近順路小吃或特色飲品')" class="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 px-2.5 py-1 rounded-full border">🍵 不太餓吃什麼</button>
+    </div>
+
+    <!-- AI 回應內容區 -->
+    <div class="p-3.5 overflow-y-auto flex-1 text-xs leading-relaxed space-y-2 bg-slate-50" id="ai-reply-content">
+      <div class="text-slate-400 text-center py-6">點擊上方按鈕或輸入問題，Gemini 導遊為您即時解答...</div>
+    </div>
+
+    <!-- 底部提問輸入框 -->
+    <div class="p-2 border-t bg-white flex gap-1.5 shrink-0">
+      <input type="text" id="ai-user-input" placeholder="想問導遊什麼？(如: 哪裡有洗手間、退稅櫃檯幾樓)" 
+             class="flex-1 bg-slate-100 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
+      <button onclick="sendCustomAiQuery()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow shrink-0">
+        發送
+      </button>
+    </div>
+  </div>
+
   <!-- 彈出式：QR Code / 電子憑證專區 Modal -->
   <div id="qr-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
     <div class="bg-white rounded-2xl p-4 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 space-y-4">
@@ -102,7 +144,7 @@
           <span class="text-xs font-bold text-blue-900">🇯🇵 Visit Japan Web (入境QR)</span>
           <span class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded font-bold" id="vjw-status">尚未上傳</span>
         </div>
-        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，將入境與海關申報 QR 碼截圖上傳，保存在手機內出國免聯網也能一秒出示！</p>
+        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，將入境與海關申報 QR 碼截圖上傳，保存在手機內免聯網也能一秒出示！</p>
         
         <div id="vjw-preview-area" class="hidden text-center py-1">
           <img id="vjw-img" src="" alt="VJW QR Code" class="mx-auto max-h-48 rounded border border-blue-300 shadow">
@@ -192,6 +234,111 @@
   </div>
 
   <script>
+    // 🌟 AI 導遊與模型設定（最新無報錯陣列） 🌟
+    const GEMINI_API_KEY = ""; // 可由使用者自填或系統調用
+    const modelCandidates = [
+      'gemini-2.5-flash',
+      'gemini-3.1-pro-preview',
+      'gemini-2.0-flash'
+    ];
+
+    let currentSpotContext = null;
+    let currentSpeechText = "";
+
+    function openAiSheet(spot) {
+      currentSpotContext = spot;
+      document.getElementById('ai-spot-name').innerText = spot.name;
+      document.getElementById('ai-spot-jp').innerText = spot.nameJp;
+      document.getElementById('ai-reply-content').innerHTML = `
+        <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-800">📌 本地攻略備註：</div>
+          <div class="text-slate-600">${spot.stepTip.replace(/\n/g, '<br>')}</div>
+          <div class="text-blue-700 font-medium mt-1">💡 推薦體驗：${spot.actionTip}</div>
+        </div>
+        <div class="text-center text-slate-400 pt-2 text-[11px]">可點擊上方快速選單或手動輸入追問 AI 導遊</div>
+      `;
+      currentSpeechText = `${spot.name}。${spot.stepTip}。${spot.actionTip}`;
+      
+      const sheet = document.getElementById('ai-guide-sheet');
+      sheet.classList.remove('translate-y-full');
+    }
+
+    function closeAiSheet() {
+      const sheet = document.getElementById('ai-guide-sheet');
+      sheet.classList.add('translate-y-full');
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    async function askAiGuide(promptTopic) {
+      if (!currentSpotContext) return;
+      const contentEl = document.getElementById('ai-reply-content');
+      contentEl.innerHTML = `<div class="text-center py-6 text-blue-600 font-bold animate-pulse">✨ Gemini 正在為兩位提取「${currentSpotContext.name}」的精確攻略與細節...</div>`;
+
+      const userPrompt = `我們是一對情侶，目前正在日本東京自由行。當前景點是「${currentSpotContext.name} (${currentSpotContext.nameJp})」。請針對「${promptTopic}」給出專業、簡潔、具體且直接可用的建議，避免冗長廢話。`;
+
+      let lastError = null;
+      let reply = null;
+
+      for (const model of modelCandidates) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userPrompt }] }]
+            })
+          });
+
+          if (!response.ok) {
+            const errJson = await response.json();
+            throw new Error(errJson.error?.message || response.statusText);
+          }
+
+          const data = await response.json();
+          reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) break;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      if (reply) {
+        currentSpeechText = reply;
+        contentEl.innerHTML = `
+          <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="font-bold text-blue-700 flex items-center gap-1">
+              <span>✨</span> ${promptTopic}
+            </div>
+            <div class="text-slate-700 whitespace-pre-wrap leading-relaxed">${reply}</div>
+          </div>
+        `;
+      } else {
+        contentEl.innerHTML = `
+          <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-200">
+            <div class="font-bold">連線暫時忙碌</div>
+            <div class="text-[11px] mt-1">${lastError ? lastError.message : '請檢查網路連線或 API Key'}</div>
+          </div>
+        `;
+      }
+    }
+
+    function sendCustomAiQuery() {
+      const input = document.getElementById('ai-user-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      askAiGuide(text);
+    }
+
+    function speakAiReply() {
+      if (!window.speechSynthesis || !currentSpeechText) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(currentSpeechText.replace(/[#*`]/g, ''));
+      utterance.lang = 'zh-TW';
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
     // QR Code Modal 開關
     function toggleQrModal() {
       const modal = document.getElementById('qr-modal');
@@ -627,12 +774,17 @@
             </div>
           </div>
 
-          <div class="mt-2 flex justify-end">
+          <!-- 雙按鈕：AI 導遊諮詢 + Google 路線導航 -->
+          <div class="mt-2.5 flex gap-2">
+            <button onclick="event.stopPropagation(); openAiSheet(travelData['${dayKey}'].spots[${idx}])" 
+                    class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 py-1.5 rounded-lg shadow-sm hover:bg-amber-100">
+              <span>✨</span> 呼叫 AI 導遊
+            </button>
             <a href="${navUrl}" 
                target="_blank" 
                onclick="event.stopPropagation();"
-               class="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg shadow hover:bg-blue-700">
-               <span>📍</span> 開啟 Google Maps 路線導航
+               class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-blue-600 text-white py-1.5 rounded-lg shadow hover:bg-blue-700">
+              <span>📍</span> 路線導航
             </a>
           </div>
         `;
@@ -684,13 +836,6 @@
         });
       }
     }
-
-    // 依序排列穩定度最高、無廢棄問題的模型陣列
-    const modelCandidates = [
-      'gemini-2.5-flash',
-      'gemini-3.1-pro-preview',
-      'gemini-2.0-flash'
-    ];
 
     window.addEventListener('load', () => {
       switchDay('day1');
