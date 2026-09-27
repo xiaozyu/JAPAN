@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>東京自由行導航助手</title>
   
-  <!-- PWA 設定（加到主畫面當 App） -->
+  <!-- PWA 設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="東京行">
@@ -17,10 +17,9 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <style>
-    /* 強制給予明確高度，確保地圖渲染順暢不反灰 */
     #map { 
-      height: 40vh; 
-      min-height: 270px;
+      height: 38vh; 
+      min-height: 250px;
       width: 100%; 
       z-index: 10; 
       background-color: #e2e8f0;
@@ -39,10 +38,15 @@
         <span class="font-bold text-xs tracking-wider" id="header-title">東京自由行導航</span>
       </div>
       
-      <!-- 右上角：日幣自動換算小工具按鈕 -->
-      <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
-        <span>💴 算匯率</span>
-      </button>
+      <!-- 右上角快捷按鈕群 -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="toggleQrModal()" class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
+          <span>📲 QR 憑證</span>
+        </button>
+        <button onclick="toggleCalcModal()" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-full text-xs shadow transition">
+          <span>💴 匯率</span>
+        </button>
+      </div>
     </div>
 
     <!-- 日期切換 Tab -->
@@ -81,6 +85,74 @@
     </div>
   </main>
 
+  <!-- 彈出式：QR Code / 電子憑證專區 Modal -->
+  <div id="qr-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl p-4 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1">
+          <span>📲</span> 通關 & 門票 QR 憑證專區
+        </h3>
+        <button onclick="toggleQrModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl leading-none">✕</button>
+      </div>
+
+      <!-- Visit Japan Web 區塊 -->
+      <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-blue-900">🇯🇵 Visit Japan Web (入境QR)</span>
+          <span class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded font-bold" id="vjw-status">尚未上傳</span>
+        </div>
+        <p class="text-[11px] text-blue-700 leading-tight">出發前填寫完畢後，截圖 QR 碼並點擊下方按鈕上傳儲存，出境日本免聯網一鍵出示！</p>
+        
+        <div id="vjw-preview-area" class="hidden text-center py-1">
+          <img id="vjw-img" src="" alt="VJW QR Code" class="mx-auto max-h-48 rounded border border-blue-300 shadow">
+          <button onclick="removeVjwImg()" class="mt-1 text-[11px] text-red-600 font-bold">刪除重傳</button>
+        </div>
+
+        <label class="block w-full text-center py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs cursor-pointer hover:bg-blue-700 transition" id="vjw-upload-btn">
+          <span>📤 上傳 VJW 截圖 (保存在手機)</span>
+          <input type="file" accept="image/*" class="hidden" onchange="handleVjwUpload(event)">
+        </label>
+      </div>
+
+      <!-- SHIBUYA SKY 憑證區塊 -->
+      <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-purple-900">🎫 SHIBUYA SKY 門票 (大人×2)</span>
+          <span class="text-[10px] bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded font-bold">10/11 17:40~17:59</span>
+        </div>
+        
+        <!-- 票券 1 -->
+        <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
+          <div class="text-[11px] font-bold text-slate-800 flex justify-between">
+            <span>票券 1 (陳政宇)</span>
+            <span class="font-mono text-purple-700 font-semibold">ID: 0013</span>
+          </div>
+          <div class="bg-slate-50 py-2 border rounded">
+            <!-- 內建 QR 產生器或顯示雲端對應圖片 -->
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=00396-2026-0927-8101-5140-0013" 
+                 alt="QR 1" class="mx-auto w-36 h-36">
+            <span class="text-[10px] text-slate-400 font-mono">00396-2026-0927-8101-5140-0013</span>
+          </div>
+        </div>
+
+        <!-- 票券 2 -->
+        <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-center space-y-1.5">
+          <div class="text-[11px] font-bold text-slate-800 flex justify-between">
+            <span>票券 2 (隨行人員)</span>
+            <span class="font-mono text-purple-700 font-semibold">ID: 0020</span>
+          </div>
+          <div class="bg-slate-50 py-2 border rounded">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=00396-2026-0927-8101-5140-0020" 
+                 alt="QR 2" class="mx-auto w-36 h-36">
+            <span class="text-[10px] text-slate-400 font-mono">00396-2026-0927-8101-5140-0020</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-purple-700 leading-relaxed font-medium">⚠️ 14F 閘門直接出示此 QR Code 掃描進場；背包、相機腳架需放入 46F 退幣式置物櫃。</p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- 彈出式：日幣/台幣自動換算機 Modal -->
   <div id="calc-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl p-4 w-full max-w-xs shadow-2xl border border-slate-200 space-y-3">
@@ -91,7 +163,6 @@
         <button onclick="toggleCalcModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none">✕</button>
       </div>
       
-      <!-- 輸入框 -->
       <div class="space-y-2">
         <div>
           <label class="text-[11px] font-bold text-slate-500">輸入日圓金額 (JPY)：</label>
@@ -109,7 +180,6 @@
         </div>
       </div>
 
-      <!-- 匯率自訂 -->
       <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t">
         <span>當前匯率: 1 JPY = </span>
         <div class="flex items-center gap-1">
@@ -122,7 +192,54 @@
   </div>
 
   <script>
-    // 匯率計算邏輯
+    // QR Code Modal 開關
+    function toggleQrModal() {
+      const modal = document.getElementById('qr-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    // Visit Japan Web 圖片上傳與 LocalStorage 存取
+    function handleVjwUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        localStorage.setItem('vjw_qr_image', base64);
+        renderVjw();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderVjw() {
+      const saved = localStorage.getItem('vjw_qr_image');
+      const previewArea = document.getElementById('vjw-preview-area');
+      const img = document.getElementById('vjw-img');
+      const status = document.getElementById('vjw-status');
+      const uploadBtn = document.getElementById('vjw-upload-btn');
+
+      if (saved) {
+        img.src = saved;
+        previewArea.classList.remove('hidden');
+        status.innerText = '已就緒 (可離線使用)';
+        status.className = 'text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-bold';
+        uploadBtn.classList.add('hidden');
+      } else {
+        previewArea.classList.add('hidden');
+        status.innerText = '尚未上傳';
+        status.className = 'text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded font-bold';
+        uploadBtn.classList.remove('hidden');
+      }
+    }
+
+    function removeVjwImg() {
+      if (confirm('確定要刪除已儲存的 VJW QR 碼嗎？')) {
+        localStorage.removeItem('vjw_qr_image');
+        renderVjw();
+      }
+    }
+
+    // 匯率換算
     function toggleCalcModal() {
       const modal = document.getElementById('calc-modal');
       modal.classList.toggle('hidden');
@@ -148,7 +265,7 @@
       }
     }
 
-    // 核心行程資料集（全座標校對完成）
+    // 完整 5 天行程資料庫
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -161,9 +278,9 @@
             lng: 121.2185,
             time: "19:00~ 入住",
             stay: "過夜休息",
-            stepTip: "抵達櫃檯辦理 Check-in 時，務必向櫃檯確認預約隔天早上的「桃機一航接駁車」！確認護照、實體網卡/eSIM憑證備妥。",
+            stepTip: "【重要預約確認】訂單已備註清晨送機。辦理 Check-in 時請向櫃檯確認「預約明日 05:00 或 05:30 前往桃園機場第一航廈的免費送機接駁車」！確認護照、實體網卡/eSIM憑證備妥。",
             transit: "台中高鐵 ➡️ 桃園高鐵站 3 號或 5 號出口，步行約 8～10 分鐘抵達",
-            actionTip: "早點休息養精蓄銳，準備隔日 JX800 早班機。",
+            actionTip: "早點洗漱休息，儲備精神準備明日清晨出發！",
             navQuery: "藍水輕旅"
           }
         ],
@@ -171,8 +288,20 @@
       },
       day1: {
         date: "10/09 (週五)",
-        title: "抵達東京・秋葉原電器・阿美橫町・蟹道樂",
+        title: "桃機出境・Skyliner・秋葉原・阿美橫町・蟹道樂",
         spots: [
+          {
+            name: "桃園國際機場 第一航廈",
+            nameJp: "星宇航空 JX800 (08:30 起飛)",
+            lat: 25.0777,
+            lng: 121.2328,
+            time: "05:30 - 08:30",
+            stay: "3 小時",
+            stepTip: "【桃機一步步出境 SOP】\n1. 搭藍水接駁車抵達一航廈 1F 出境大廳。\n2. 抬頭看電視看板確認星宇 JX800 報到櫃檯（通常為 6 號櫃檯）。\n3. 06:00 櫃檯開櫃出示護照、辦理 Check-in、領實體登機證、秤重託運行李（看螢幕行李過 X 光機再走）。\n4. 上 3 樓進行隨身安檢（筆電/平板/行動電源單獨放籃子，液體≤100ml裝透明夾鏈袋）。\n5. 刷護照自動通關出境 ➡️ 07:50 前抵達登機門登機！",
+            transit: "藍水輕旅接駁車車程約 15 分鐘",
+            actionTip: "星宇 JX800 準時 08:30 起飛（台灣時間），航程約 3 小時 25 分。",
+            navQuery: "桃園國際機場 第一航廈"
+          },
           {
             name: "成田國際機場 第二航廈",
             nameJp: "成田空港第2ビル駅 (なりただいに)",
@@ -180,9 +309,9 @@
             lng: 140.3878,
             time: "11:55 - 12:40",
             stay: "45 分鐘",
-            stepTip: "出境後下到 B1 鐵道改札口，找【京成電鐵 (Keisei)】的「藍色售票機台」或人工櫃檯，出示 Klook QR Code 兌換 Skyliner 車票！",
-            transit: "搭乘 12:40 Skyliner 直達京成上野（第 1 月台，車程 41 分鐘）",
-            actionTip: "領完票在旁邊自動販賣機買水，體驗西瓜卡手機逼一下感應！",
+            stepTip: "【成田入境與取票 SOP】\n1. 下機出示手機 Visit Japan Web 入境與海關申報 QR Code 迅速過審查。\n2. 提領行李後，搭手扶梯直下【B1 鐵道改札口】。\n3. 找【京成電鐵 (Keisei)】的「藍色 Skyliner 售票機」或人工櫃檯，刷憑證兌換 12:40 往京成上野的車票！全程 41 分鐘直達上野。",
+            transit: "搭乘 12:40 Skyliner 直達京成上野（第 1 月台）",
+            actionTip: "取票後在旁邊機台買水，體驗手機西瓜卡嗶一下！",
             navQuery: "成田國際機場 第二航廈"
           },
           {
@@ -344,7 +473,7 @@
             lng: 139.7023,
             time: "17:40 - 17:59 入場",
             stay: "1.5 小時",
-            stepTip: "【極度重要】預約票是 17:40-17:59，逾時作廢！14F 出示手機 QR 入場，搭電梯上 46F 【所有背包、帽子、圍巾必須鎖入 100円置物櫃（退幣式），身上只能拿手機或掛頸相機】！",
+            stepTip: "【極度重要】預約票是 17:40-17:59，逾時作廢！14F 出示手機頂部【📲 QR 憑證】掃描入場，搭電梯上 46F 【所有背包、帽子、圍巾必須鎖入 100円置物櫃（退幣式），身上只能拿手機或掛頸相機】！",
             transit: "原宿漫步至澀谷約 15 分鐘（或搭地鐵 1 站）",
             actionTip: "直達露天頂樓天台，享受東京落日夕陽 ➡️ 澀谷十字路口暮光 ➡️ 璀璨夜景的最美時段！",
             navQuery: "SHIBUYA SKY"
@@ -415,7 +544,7 @@
       }
     };
 
-    // 初始化地圖：採用全球最穩定的標準圖資
+    // 初始化地圖
     let map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
     
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -427,7 +556,6 @@
     let routePolyline = null;
 
     function switchDay(dayKey) {
-      // Tab 樣式切換
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.className = "tab-btn shrink-0 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-semibold";
       });
@@ -441,7 +569,6 @@
       document.getElementById('day-title').innerText = data.title;
       document.getElementById('header-title').innerText = `東京行・${data.title.split('・')[0]}`;
 
-      // 清除舊圖釘與路徑連線
       markersLayer.clearLayers();
       if (routePolyline) map.removeLayer(routePolyline);
 
@@ -452,7 +579,6 @@
       data.spots.forEach((spot, idx) => {
         latlngs.push([spot.lat, spot.lng]);
 
-        // 自訂醒目號碼標記
         const customIcon = L.divIcon({
           className: 'custom-pin',
           html: `<div style="background:#2563EB;color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 3px 6px rgba(0,0,0,0.4);">${idx + 1}</div>`,
@@ -461,8 +587,6 @@
         });
 
         const marker = L.marker([spot.lat, spot.lng], { icon: customIcon }).addTo(markersLayer);
-        
-        // 核心修正：導航連結改用精準地標名稱，避免 Google Maps 飄移
         const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(spot.navQuery || spot.name)}`;
         
         const popupContent = `
@@ -479,7 +603,6 @@
         `;
         marker.bindPopup(popupContent);
 
-        // 下方行程卡片
         const card = document.createElement('div');
         card.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-sm cursor-pointer active:scale-[0.99] transition";
         card.onclick = () => {
@@ -494,10 +617,9 @@
           <div class="mt-1 font-bold text-slate-900 text-sm">${idx + 1}. ${spot.name}</div>
           <div class="text-[11px] text-slate-400 font-mono">${spot.nameJp}</div>
 
-          <!-- 重要操作 SOP 與轉乘提示 -->
           <div class="mt-2 text-xs space-y-1.5">
-            <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2 rounded-lg leading-relaxed">
-              <span class="font-bold">⚠️ 操作SOP：</span>${spot.stepTip.replace(/\n/g, '<br>')}
+            <div class="bg-amber-50 border border-amber-200 text-amber-900 p-2 rounded-lg leading-relaxed whitespace-pre-line">
+              <span class="font-bold">⚠️ 操作SOP：</span>${spot.stepTip}
             </div>
             <div class="bg-slate-50 border border-slate-100 text-slate-600 p-2 rounded-lg">
               <div>🚇 <b>交通：</b>${spot.transit}</div>
@@ -517,7 +639,6 @@
         spotsListEl.appendChild(card);
       });
 
-      // 畫出點跟點之間的導航連線
       if (latlngs.length > 1) {
         routePolyline = L.polyline(latlngs, {
           color: '#2563EB',
@@ -532,12 +653,10 @@
         map.fitBounds(markersLayer.getBounds(), { padding: [35, 35] });
       }
 
-      // 強制重新計算地圖尺寸，避免地圖變灰或消失
       setTimeout(() => {
         map.invalidateSize();
       }, 100);
 
-      // 採買清單渲染
       const shopCard = document.getElementById('shopping-card');
       const shopEl = document.getElementById('shopping-list');
       shopEl.innerHTML = '';
@@ -566,9 +685,9 @@
       }
     }
 
-    // 頁面載入完成後初始化
     window.addEventListener('load', () => {
       switchDay('day1');
+      renderVjw();
       setTimeout(() => map.invalidateSize(), 300);
     });
   </script>
