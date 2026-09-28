@@ -90,9 +90,12 @@
   <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[88vh] flex flex-col">
     <div class="p-3 border-b flex justify-between items-center bg-white rounded-t-2xl shrink-0">
       <div class="flex items-center gap-2">
-        <span class="text-amber-500 text-base">✨</span>
+        <span class="text-amber-500 text-base">🧭</span>
         <div>
-          <h3 class="text-xs font-bold text-slate-900" id="ai-spot-name">景點名稱</h3>
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-xs font-bold text-slate-900" id="ai-spot-name">景點名稱</h3>
+            <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded" id="ai-spot-stay">停留 --</span>
+          </div>
           <p class="text-[10px] text-slate-400 font-mono" id="ai-spot-jp">日文名稱</p>
         </div>
       </div>
@@ -105,16 +108,16 @@
       </div>
     </div>
 
-    <!-- 歷史問題選單面板 -->
+    <!-- 歷史紀錄面板 -->
     <div id="history-panel" class="hidden bg-slate-50 border-b border-slate-200 p-2.5 max-h-48 overflow-y-auto shrink-0 space-y-1.5">
       <div class="flex justify-between items-center px-1">
-        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">歷史紀錄庫</span>
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">導遊紀錄庫</span>
         <button onclick="clearCurrentSpotHistory()" class="text-[10px] text-red-500 hover:text-red-700 font-semibold">清空此處紀錄</button>
       </div>
       <div id="history-items" class="space-y-1"></div>
     </div>
 
-    <!-- 導遊即時內容輸出區 -->
+    <!-- 導遊解說內容輸出區 -->
     <div class="p-3.5 overflow-y-auto flex-1 text-xs leading-relaxed space-y-3 bg-white" id="ai-reply-content"></div>
 
     <!-- Gemini Pro 官方連動專區 -->
@@ -123,29 +126,29 @@
         <span>💎</span> Gemini Pro 專區
       </span>
       <div class="flex gap-1.5">
-        <button onclick="copyPromptForPro()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded-lg shadow-sm">
-          📋 複製熟手 Prompt
+        <button onclick="copyPromptForPro()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-sm">
+          📋 複製時間規劃 Prompt
         </button>
-        <button onclick="openPasteModal()" class="bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold px-2 py-1 rounded-lg shadow-sm">
+        <button onclick="openPasteModal()" class="bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-300 font-bold px-2.5 py-1 rounded-lg shadow-sm">
           📥 貼入 Pro 回答存檔
         </button>
       </div>
     </div>
 
-    <!-- 底部膠囊快速追問按鈕列 -->
+    <!-- 底部膠囊快速追問按鈕列 (聚焦時間節點、動作、雷區、下一步) -->
     <div class="flex gap-1.5 px-3 py-2 overflow-x-auto no-scrollbar shrink-0 border-t bg-slate-50 text-[11px]">
-      <button onclick="callGemini('重點列出該地點的【防呆避坑與保證PASS規矩】：包含排隊眉角、容易搞錯的動線地雷、置物櫃/洗手間具體位置、邊走邊吃與免稅細則。', '⚠️ 防呆避坑規矩')" class="shrink-0 bg-white hover:bg-amber-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚠️ 防呆避坑規矩</button>
-      <button onclick="callGemini('列出【老饕與熟手私房點法】：具體必吃品項、點餐數量組合、預估日幣與折合台幣金額、避免踩雷的大眾雷區。', '🎯 熟手私房點法')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🎯 熟手私房點法</button>
-      <button onclick="callGemini('列出此處【步行 3 分鐘內極速補給點】：乾淨洗手間位置、投幣置物櫃空位機率高的點、或必買限定飲品/點心。', '🚻 補給與置物櫃')" class="shrink-0 bg-white hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🚻 補給與置物櫃</button>
-      <button onclick="callGemini('列出此地點【最快通關/最省腳力的動線秘訣】：熟手會怎麼走以避開無效排隊與人潮？', '⚡ 熟手省力動線')" class="shrink-0 bg-white hover:bg-purple-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚡ 熟手省力動線</button>
+      <button onclick="callGemini('依照預計停留時間，直接列出清晰的時間軸、每個時間點要做什麼、核心動作與防呆確認。', '⏱️ 時間軸規劃與動作')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⏱️ 時間軸與動作</button>
+      <button onclick="callGemini('說明這裡絕對不能踩的雷、動線地雷、店家規矩或相關規定，以及洗手間位置。', '⚠️ 這邊要注意什麼')" class="shrink-0 bg-white hover:bg-rose-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚠️ 這邊要注意什麼</button>
+      <button onclick="callGemini('列出 2~3 個必買或必吃品項，需附日圓與折合台幣價格、點法與推薦原因。', '🛍️ 推薦品項與價格')" class="shrink-0 bg-white hover:bg-amber-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🛍️ 推薦品項與價格</button>
+      <button onclick="callGemini('完成這裡的行程後，下一步具體要幹嘛、後面流程怎麼走？', '➡️ 下一步後面流程')" class="shrink-0 bg-white hover:bg-emerald-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">➡️ 下一步後面流程</button>
     </div>
 
     <!-- 底部自訂輸入框 -->
     <div class="p-2 border-t bg-white flex gap-1.5 shrink-0">
-      <input type="text" id="ai-user-input" placeholder="直接打關鍵字（如：牛舌、置物櫃、退稅、水手舍）..." 
+      <input type="text" id="ai-user-input" placeholder="問導遊任何問題（如：置物櫃在哪、下一步怎麼走）..." 
              class="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
       <button onclick="sendCustomAiQuery()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs shadow shrink-0">
-        API 查詢
+        詢問導遊
       </button>
     </div>
   </div>
@@ -155,20 +158,20 @@
     <div class="bg-white rounded-2xl p-4 w-full max-w-sm shadow-2xl border border-slate-200 space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1">
-          <span>📥</span> 存入 Gemini Pro 回答
+          <span>📥</span> 存入 Gemini Pro 導遊回答
         </h3>
         <button onclick="closePasteModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none">✕</button>
       </div>
       <div>
-        <label class="text-[11px] font-bold text-slate-600 block mb-1">自訂標題（例如：老饕點法、防呆通關）：</label>
-        <input type="text" id="paste-title-input" placeholder="Gemini Pro 回答" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2">
+        <label class="text-[11px] font-bold text-slate-600 block mb-1">自訂標題（例如：時間規劃與SOP、避雷提醒）：</label>
+        <input type="text" id="paste-title-input" placeholder="導遊解說" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-2">
         
         <label class="text-[11px] font-bold text-slate-600 block mb-1">貼上在 Gemini Pro 複製的完整回答：</label>
-        <textarea id="paste-content-input" rows="6" placeholder="直接貼上文字內容..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans leading-relaxed"></textarea>
+        <textarea id="paste-content-input" rows="7" placeholder="直接貼上文字內容..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans leading-relaxed"></textarea>
       </div>
       <div class="flex gap-2">
         <button onclick="savePastedProContent()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-xs shadow">
-          確認存入歷史紀錄
+          確認存入導遊庫
         </button>
         <button onclick="closePasteModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-2 rounded-xl text-xs">
           取消
@@ -309,7 +312,6 @@
   </div>
 
   <script>
-    // API Key 存取
     function getStoredApiKey() {
       return localStorage.getItem('gemini_api_key') || "";
     }
@@ -350,14 +352,13 @@
 
     let currentSpotContext = null;
 
-    // 歷史紀錄核心資料庫函式 (持久化保存在 localStorage)
     function getSpotHistory(spotName) {
       const key = `ai_history_${spotName}`;
       const raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : [];
     }
 
-    function saveSpotHistory(spotName, title, content, badge = "AI") {
+    function saveSpotHistory(spotName, title, content, badge = "導遊") {
       const history = getSpotHistory(spotName);
       const timeStr = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
       history.unshift({ title, content, time: timeStr, badge, id: Date.now() });
@@ -375,7 +376,7 @@
       container.innerHTML = '';
 
       if (history.length === 0) {
-        container.innerHTML = '<div class="text-[11px] text-slate-400 py-2 text-center">尚無任何提問或存檔紀錄</div>';
+        container.innerHTML = '<div class="text-[11px] text-slate-400 py-2 text-center">尚無任何導遊紀錄</div>';
         return;
       }
 
@@ -386,7 +387,7 @@
         const badgeColor = item.badge === 'PRO' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-blue-100 text-blue-700 border-blue-200';
         btn.innerHTML = `
           <div class="flex items-center gap-1.5 truncate pr-2">
-            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeColor}">${item.badge || 'AI'}</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeColor}">${item.badge || '導遊'}</span>
             <span class="font-bold text-slate-800 truncate">${item.title}</span>
           </div>
           <span class="text-[10px] text-slate-400 shrink-0 font-mono">${item.time}</span>
@@ -410,7 +411,7 @@
       contentEl.innerHTML = `
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
           <div class="text-[10px] text-blue-600 font-bold flex items-center justify-between border-b pb-1">
-            <span>📜 [${target.badge || 'AI'}] ${target.title}</span>
+            <span>📜 [${target.badge || '導遊'}] ${target.title}</span>
             <span class="font-mono text-slate-400 text-[9px]">${target.time}</span>
           </div>
           <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">${target.content}</div>
@@ -432,26 +433,33 @@
       }
     }
 
-    // 🌟 複製給 Gemini Pro 的「熟手老饕版」Prompt 🌟
+    // 🌟 升級版：時間軸清晰規劃版 Prompt (鎖定時間與動作格式) 🌟
     function copyPromptForPro() {
       if (!currentSpotContext) return;
-      const textToCopy = `你是一位講究效率、熟門熟路且實戰細節極強的東京自由行隨身助手。
+      const textToCopy = `你是一位講求極致效率與清晰執行的東京自由行隨身專業導遊。
 地點：${currentSpotContext.name} (${currentSpotContext.nameJp})。
+預計停留時間：${currentSpotContext.stay}。
 已知現場備忘：${currentSpotContext.stepTip}。
 已知推薦點：${currentSpotContext.actionTip}。
 
-請針對此地點，嚴格按照以下兩大重點條列分析（嚴禁開場白、自介、客套話或大眾清單）：
+【語氣與排版規範】：
+1. 嚴禁任何開場客套話、結尾客套或無用作文。嚴禁使用任何底線、斜體（如 _文字_），一律以正常正體中文輸出。
+2. 依照預計停留時間，嚴格按照以下四個板塊依序輸出：
 
-1. ⚠️ 【現場避坑與防呆規矩】（保證不踩雷、順利PASS）：
-   - 現場最容易搞錯的動線地雷、排隊眉角、不可違犯的禁忌規矩（如邊走邊吃限制、預約時限、寄物規範、水手舍洗手順序或免稅封袋要求）。
-   - 步行 3 分鐘內具體乾淨洗手間位置或投幣式置物櫃（Coin Locker）位置。
+⏱️ ${currentSpotContext.name}：時間與具體動作
+(列出具體的時間節點，例如 05:30｜抵達...，條列「必做」動作與「關鍵防呆」確認事項)
 
-2. 🎯 【老饕與熟手私房點法】（不當盤子、效率最高）：
-   - 最值得買或必吃的 2~3 個品項（直接列出具體品名、預估日幣金額與折合新台幣金額、數量組合或分食建議）。
-   - 當地老手或老饕才會知道的特殊吃法、隱藏搭配或購買撇步。`;
+⚠️ 這邊要注意什麼
+(列出此處絕對不能踩的雷、動線地雷、店家規矩或相關規定，以及洗手間位置)
+
+🛍️ 推薦品項與價格
+(列出 2~3 個必買或必吃品項，嚴格依照「品名：[日幣金額] 円 (約 NT$ [台幣金額])。簡述推薦原因與點法」格式)
+
+➡️ 下一步後面流程
+(完成這裡的停留後，下一步具體要做什麼、後面流程怎麼走)`;
 
       navigator.clipboard.writeText(textToCopy).then(() => {
-        alert("✅ 已複製【熟手老饕版】Prompt！\n請切換至 Gemini Pro 貼上提問，回答後再點「📥 貼入 Pro 回答存檔」。");
+        alert(`✅ 已複製【時間軸規劃版】Prompt (已鎖定停留: ${currentSpotContext.stay})！\n請切換至 Gemini Pro 貼上提問，回答後再點「📥 貼入 Pro 回答存檔」。`);
       }).catch(err => {
         prompt("請手動複製以下提示詞：", textToCopy);
       });
@@ -459,7 +467,7 @@
 
     function openPasteModal() {
       if (!currentSpotContext) return;
-      document.getElementById('paste-title-input').value = `${currentSpotContext.name}・老饕攻略`;
+      document.getElementById('paste-title-input').value = `${currentSpotContext.name} (${currentSpotContext.stay})・時間規劃`;
       document.getElementById('paste-content-input').value = '';
       document.getElementById('paste-modal').classList.remove('hidden');
       setTimeout(() => document.getElementById('paste-content-input').focus(), 100);
@@ -470,7 +478,7 @@
     }
 
     function savePastedProContent() {
-      const title = document.getElementById('paste-title-input').value.trim() || 'Gemini Pro 分析';
+      const title = document.getElementById('paste-title-input').value.trim() || 'Gemini Pro 導遊指南';
       const content = document.getElementById('paste-content-input').value.trim();
       
       if (!content) {
@@ -487,6 +495,7 @@
       currentSpotContext = spot;
       document.getElementById('ai-spot-name').innerText = spot.name;
       document.getElementById('ai-spot-jp').innerText = spot.nameJp;
+      document.getElementById('ai-spot-stay').innerText = `停留 ${spot.stay}`;
       
       document.getElementById('history-panel').classList.add('hidden');
       updateHistoryUI();
@@ -499,10 +508,10 @@
       } else {
         contentEl.innerHTML = `
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
-            <div class="font-bold text-slate-800">💡 尚未有分析資料</div>
+            <div class="font-bold text-slate-800">🧭 景點規劃停留：${spot.stay}</div>
             <div class="text-slate-600 leading-relaxed text-[11px]">
-              • <b>方法 1（使用 Pro 訂閱，最穩最省）</b>：點擊下方「<b>📋 複製熟手 Prompt</b>」到你的 Gemini Pro 提問，再點「<b>📥 貼入 Pro 回答</b>」存檔！<br>
-              • <b>方法 2（自動 API 分析）</b>：點擊下方快速膠囊按鈕（如 ⚠️ 防呆避坑規矩、🎯 熟手私房點法）直接發動分析。
+              • <b>推薦方式（Pro 訂閱存檔）</b>：點擊下方「<b>📋 複製時間規劃 Prompt</b>」至 Gemini Pro 提問，點「<b>📥 貼入 Pro 回答存檔</b>」！<br>
+              • <b>快速方式（API 自動解說）</b>：點擊下方快速按鈕（如 ⏱️ 時間軸與動作、⚠️ 這邊要注意什麼）直接取得導遊說明。
             </div>
           </div>
         `;
@@ -518,7 +527,7 @@
       document.getElementById('history-panel').classList.add('hidden');
     }
 
-    // 🌟 API 調用預設指令升級為「熟手老饕防呆模式」 🌟
+    // 🌟 API 調用預設指令：全面升級時間軸版型 🌟
     async function callGemini(userTask, customTitle = null) {
       if (!currentSpotContext) return;
       const apiKey = getStoredApiKey();
@@ -531,7 +540,7 @@
               <span>⚠️</span> 尚未設定 API Key
             </div>
             <div class="text-[11px] leading-relaxed">
-              右上角「🔑 KEY」尚未綁定。你可以直接點下方「<b>📋 複製熟手 Prompt</b>」用你現有的 Gemini Pro 發問，或綁定 Key 開通即時演算！
+              右上角「🔑 KEY」尚未綁定。你可以直接點下方「<b>📋 複製時間規劃 Prompt</b>」用現有的 Gemini Pro 發問，或綁定 Key 開通即時演算！
             </div>
           </div>
         `;
@@ -543,21 +552,22 @@
       contentEl.innerHTML = `
         <div class="py-6 text-center space-y-1.5">
           <div class="inline-block animate-spin text-xl">🧭</div>
-          <div class="text-xs font-bold text-blue-600 animate-pulse">正在精準演算「${currentSpotContext.name}」要點...</div>
+          <div class="text-xs font-bold text-blue-600 animate-pulse">導遊正在為你梳理「${currentSpotContext.name}」時間流程...</div>
           <div class="text-[10px] text-slate-400">正在調用低延遲 Flash 引擎</div>
         </div>
       `;
 
-      const systemInstruction = `你是一位講究效率、熟門熟路且實戰細節極強的東京自由行隨身助手。
+      const systemInstruction = `你是一位講求極致效率與清晰執行的東京自由行隨身專業導遊。
 地點：${currentSpotContext.name} (${currentSpotContext.nameJp})。
+預計停留時間：${currentSpotContext.stay}。
 已知現場備忘：${currentSpotContext.stepTip}。
 已知推薦點：${currentSpotContext.actionTip}。
 
-回覆規範（嚴格遵守）：
-1. 嚴禁任何開場白、客套話、自介或長篇大論，直接輸出核心數據與結論。
-2. 內容聚焦：【⚠️ 防呆避坑與保證PASS規矩】與【🎯 老饕熟手私房點法】。
-3. 價格必須明確列出：日圓金額與折合新台幣金額。
-4. 條列精簡輸出，總字數控制在 280 字內。繁體中文。`;
+【語氣與排版規範】：
+1. 嚴禁任何開場客套、結尾客套或無用作文。嚴禁使用任何底線或斜體語法，一律正常正體字輸出。
+2. 緊扣時間軸，清楚交代時間節點、必做動作與關鍵防呆。
+3. 推薦品項必須包含日幣與折合新台幣價格（格式：品名：XXX 円 (約 NT$ XXX)。原因與點法）。
+4. 提醒注意地雷、規矩禁忌、洗手間位置與下一步後續流程。繁體中文。`;
 
       let reply = null;
       let lastErr = null;
@@ -571,8 +581,8 @@
               systemInstruction: { parts: [{ text: systemInstruction }] },
               contents: [{ parts: [{ text: userTask }] }],
               generationConfig: {
-                maxOutputTokens: 600,
-                temperature: 0.3
+                maxOutputTokens: 800,
+                temperature: 0.2
               }
             })
           });
@@ -591,7 +601,7 @@
       }
 
       if (reply) {
-        saveSpotHistory(currentSpotContext.name, queryTitle, reply, "API");
+        saveSpotHistory(currentSpotContext.name, queryTitle, reply, "導遊");
         renderHistoryDetail(0);
       } else {
         contentEl.innerHTML = `
@@ -599,7 +609,7 @@
             <div class="font-bold">連線失敗（伺服器繁忙）</div>
             <div class="text-[11px] leading-relaxed font-mono">${lastErr ? lastErr.message : 'API 逾時或流量高峰'}</div>
             <div class="text-[10px] text-slate-500 pt-1">
-              建議替代方案：直接點擊下方「<b>📋 複製熟手 Prompt</b>」切換到你的 Gemini Pro 提問，再點「<b>📥 貼入 Pro 回答存檔</b>」！
+              建議替代方案：直接點擊下方「<b>📋 複製時間規劃 Prompt</b>」切換到你的 Gemini Pro 提問，再點「<b>📥 貼入 Pro 回答存檔</b>」！
             </div>
           </div>
         `;
@@ -614,7 +624,6 @@
       callGemini(text, text);
     }
 
-    // QR Code Modal 開關
     function toggleQrModal() {
       const modal = document.getElementById('qr-modal');
       modal.classList.toggle('hidden');
@@ -660,7 +669,6 @@
       }
     }
 
-    // 匯率換算
     function toggleCalcModal() {
       const modal = document.getElementById('calc-modal');
       modal.classList.toggle('hidden');
@@ -686,7 +694,6 @@
       }
     }
 
-    // 完整 5 天行程資料庫
     const travelData = {
       day0: {
         date: "10/08 (週四)",
@@ -965,7 +972,6 @@
       }
     };
 
-    // 初始化地圖
     let map = L.map('map', { zoomControl: false }).setView([35.7118, 139.7741], 14);
     
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1051,7 +1057,7 @@
           <div class="mt-2.5 flex gap-2">
             <button onclick="event.stopPropagation(); openAiSheet(travelData['${dayKey}'].spots[${idx}])" 
                     class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 py-1.5 rounded-lg shadow-sm hover:bg-amber-100">
-              <span>⚠️</span> 重點與避坑
+              <span>🧭</span> 導遊解說
             </button>
             <a href="${navUrl}" 
                target="_blank" 
