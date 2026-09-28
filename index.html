@@ -86,7 +86,7 @@
     </div>
   </main>
 
-  <!-- 🌟 AI 即時思考導遊抽屜（整合快取與歷史回看） 🌟 -->
+  <!-- 🌟 AI 即時思考導遊抽屜 🌟 -->
   <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[88vh] flex flex-col">
     <div class="p-3 border-b flex justify-between items-center bg-white rounded-t-2xl shrink-0">
       <div class="flex items-center gap-2">
@@ -97,7 +97,6 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <!-- 歷史問題回看按鈕 -->
         <button onclick="toggleHistoryView()" id="btn-toggle-history" class="text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full border border-slate-300 flex items-center gap-1 transition">
           <span>📜</span>
           <span>歷史 (<span id="history-count">0</span>)</span>
@@ -106,7 +105,7 @@
       </div>
     </div>
 
-    <!-- 歷史問題選單面板（預設隱藏） -->
+    <!-- 歷史問題選單面板 -->
     <div id="history-panel" class="hidden bg-slate-50 border-b border-slate-200 p-2.5 max-h-48 overflow-y-auto shrink-0 space-y-1.5">
       <div class="flex justify-between items-center px-1">
         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">歷史提問紀錄清單</span>
@@ -301,11 +300,11 @@
       document.getElementById('key-status-msg').innerText = "已清除 Key";
     }
 
-    // 🌟 模型候選清單 🌟
+    // 🌟 低延遲、避開塞車的高可用 Flash 模型候選隊列 🌟
     const modelCandidates = [
-      'gemini-3.8-flash',
-      'gemini-3.5-flash-lite',
-      'gemini-3-flash-preview'
+      'gemini-2.0-flash-lite',
+      'gemini-2.5-flash',
+      'gemini-1.5-flash'
     ];
 
     let currentSpotContext = null;
@@ -320,7 +319,6 @@
     function saveSpotHistory(spotName, title, content) {
       const history = getSpotHistory(spotName);
       const timeStr = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
-      // 最多保存 15 筆紀錄，新問題排在最前面
       history.unshift({ title, content, time: timeStr, id: Date.now() });
       if (history.length > 15) history.pop();
       localStorage.setItem(`ai_history_${spotName}`, JSON.stringify(history));
@@ -374,7 +372,6 @@
         </div>
       `;
 
-      // 點選後自動收起歷史面板，方便瀏覽
       document.getElementById('history-panel').classList.add('hidden');
     }
 
@@ -395,14 +392,12 @@
       document.getElementById('ai-spot-name').innerText = spot.name;
       document.getElementById('ai-spot-jp').innerText = spot.nameJp;
       
-      // 收合歷史面板
       document.getElementById('history-panel').classList.add('hidden');
       updateHistoryUI();
 
       const history = getSpotHistory(spot.name);
       const contentEl = document.getElementById('ai-reply-content');
 
-      // 若該景點曾有紀錄，直接還原最新一筆紀錄，省下 API 呼叫；否則發動預設分析
       if (history.length > 0) {
         renderHistoryDetail(0);
       } else {
@@ -447,7 +442,7 @@
         <div class="py-6 text-center space-y-1.5">
           <div class="inline-block animate-spin text-xl">🧭</div>
           <div class="text-xs font-bold text-blue-600 animate-pulse">正在精準演算「${currentSpotContext.name}」要點...</div>
-          <div class="text-[10px] text-slate-400">正在調用 Gemini Flash 模型</div>
+          <div class="text-[10px] text-slate-400">正在調用低延遲 Flash 引擎</div>
         </div>
       `;
 
@@ -457,10 +452,9 @@
 已知推薦點：${currentSpotContext.actionTip}。
 
 回覆規範（嚴格遵守）：
-1. 嚴禁任何開場白、客套話、自介或大眾化清單，直接輸出重點結論與具體數據。
-2. 推薦品項必須明確列出：具體品名、預估日圓金額、點餐數量/分食建議。
-3. 避坑必須說明：現場規矩限制（如洗手水/邊走邊吃/置物櫃）、免稅條件或入場時限。
-4. 繁體中文條列輸出。`;
+1. 嚴禁任何開場白、客套話、自介或長篇大論，直接輸出核心數據與結論。
+2. 條列精簡輸出，總字數控制在 250 字內。
+3. 繁體中文。`;
 
       let reply = null;
       let lastErr = null;
@@ -472,7 +466,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemInstruction }] },
-              contents: [{ parts: [{ text: userTask }] }]
+              contents: [{ parts: [{ text: userTask }] }],
+              generationConfig: {
+                maxOutputTokens: 600,
+                temperature: 0.3
+              }
             })
           });
 
@@ -490,7 +488,6 @@
       }
 
       if (reply) {
-        // 保存至持久化歷史紀錄庫
         saveSpotHistory(currentSpotContext.name, queryTitle, reply);
 
         contentEl.innerHTML = `
@@ -505,9 +502,9 @@
       } else {
         contentEl.innerHTML = `
           <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-200 space-y-1 text-xs">
-            <div class="font-bold">連線失敗</div>
-            <div class="text-[11px] leading-relaxed">${lastErr ? lastErr.message : 'API Key 無效或網路逾時'}</div>
-            <div class="text-[10px] text-slate-500 pt-1">請點擊右上角「🔑 KEY」確認你的 Key 是否正確。</div>
+            <div class="font-bold">連線失敗（伺服器繁忙）</div>
+            <div class="text-[11px] leading-relaxed font-mono">${lastErr ? lastErr.message : 'API 逾時或流量高峰'}</div>
+            <div class="text-[10px] text-slate-500 pt-1">Google 免費節點瞬間塞車，請稍候 15～30 秒後再次點擊即可。</div>
           </div>
         `;
       }
