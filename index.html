@@ -20,7 +20,7 @@
   <style>
     #map { 
       height: 38vh; 
-      min-height: 250px;
+      min-height: 250px; 
       width: 100%; 
       z-index: 10; 
       background-color: #e2e8f0;
@@ -86,8 +86,8 @@
     </div>
   </main>
 
-  <!-- 🌟 真實 AI 即時思考導遊抽屜（無罐頭、無朗讀） 🌟 -->
-  <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[85vh] flex flex-col">
+  <!-- 🌟 AI 即時思考導遊抽屜（整合快取與歷史回看） 🌟 -->
+  <div id="ai-guide-sheet" class="fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 transition-transform duration-300 transform translate-y-full max-h-[88vh] flex flex-col">
     <div class="p-3 border-b flex justify-between items-center bg-white rounded-t-2xl shrink-0">
       <div class="flex items-center gap-2">
         <span class="text-amber-500 text-base">✨</span>
@@ -96,7 +96,23 @@
           <p class="text-[10px] text-slate-400 font-mono" id="ai-spot-jp">日文名稱</p>
         </div>
       </div>
-      <button onclick="closeAiSheet()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none p-1">✕</button>
+      <div class="flex items-center gap-2">
+        <!-- 歷史問題回看按鈕 -->
+        <button onclick="toggleHistoryView()" id="btn-toggle-history" class="text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full border border-slate-300 flex items-center gap-1 transition">
+          <span>📜</span>
+          <span>歷史 (<span id="history-count">0</span>)</span>
+        </button>
+        <button onclick="closeAiSheet()" class="text-slate-400 hover:text-slate-600 font-bold text-lg leading-none p-1">✕</button>
+      </div>
+    </div>
+
+    <!-- 歷史問題選單面板（預設隱藏） -->
+    <div id="history-panel" class="hidden bg-slate-50 border-b border-slate-200 p-2.5 max-h-48 overflow-y-auto shrink-0 space-y-1.5">
+      <div class="flex justify-between items-center px-1">
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">歷史提問紀錄清單</span>
+        <button onclick="clearCurrentSpotHistory()" class="text-[10px] text-red-500 hover:text-red-700 font-semibold">清空紀錄</button>
+      </div>
+      <div id="history-items" class="space-y-1"></div>
     </div>
 
     <!-- 導遊即時思考輸出區 -->
@@ -104,10 +120,10 @@
 
     <!-- 底部膠囊快速追問按鈕列 -->
     <div class="flex gap-1.5 px-3 py-2 overflow-x-auto no-scrollbar shrink-0 border-t bg-slate-50 text-[11px]">
-      <button onclick="callGemini('重點列出該地點的【現場必知禁忌、限制與避坑規矩】（包含邊走邊吃限制、預約時限、寄物規範、特定吃法眉角）。')" class="shrink-0 bg-white hover:bg-amber-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚠️ 避坑與規矩</button>
-      <button onclick="callGemini('列出【最值得點或必買的 2~3 個品項】（直接給具體品名、預估日幣金額、推薦原因與點餐數量組合）。')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🎯 推薦品項與點法</button>
-      <button onclick="callGemini('列出此處步行 3 分鐘內【乾淨洗手間位置】與【投幣式置物櫃 (Coin Locker) 具體位置】。')" class="shrink-0 bg-white hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🚻 廁所與置物櫃</button>
-      <button onclick="callGemini('情侶在此處的【最佳合照角度】（給出避開人潮的具體站位與鏡頭取景方式）。')" class="shrink-0 bg-white hover:bg-purple-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">📸 精準拍攝站位</button>
+      <button onclick="callGemini('重點列出該地點的【現場必知禁忌、限制與避坑規矩】（包含邊走邊吃限制、預約時限、寄物規範、特定吃法眉角）。', '⚠️ 避坑與規矩')" class="shrink-0 bg-white hover:bg-amber-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">⚠️ 避坑與規矩</button>
+      <button onclick="callGemini('列出【最值得點或必買的 2~3 個品項】（直接給具體品名、預估日幣金額、推薦原因與點餐數量組合）。', '🎯 推薦品項與點法')" class="shrink-0 bg-white hover:bg-blue-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🎯 推薦品項與點法</button>
+      <button onclick="callGemini('列出此處步行 3 分鐘內【乾淨洗手間位置】與【投幣式置物櫃 (Coin Locker) 具體位置】。', '🚻 廁所與置物櫃')" class="shrink-0 bg-white hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">🚻 廁所與置物櫃</button>
+      <button onclick="callGemini('情侶在此處的【最佳合照角度】（給出避開人潮的具體站位與鏡頭取景方式）。', '📸 精準拍攝站位')" class="shrink-0 bg-white hover:bg-purple-50 text-slate-800 px-2.5 py-1 rounded-full border border-slate-200 shadow-sm font-medium">📸 精準拍攝站位</button>
     </div>
 
     <!-- 底部自訂輸入框 -->
@@ -285,7 +301,7 @@
       document.getElementById('key-status-msg').innerText = "已清除 Key";
     }
 
-    // 🌟 2026 現行官方主流 Flash 模型清單 🌟
+    // 🌟 模型候選清單 🌟
     const modelCandidates = [
       'gemini-3.8-flash',
       'gemini-3.5-flash-lite',
@@ -294,12 +310,104 @@
 
     let currentSpotContext = null;
 
+    // 🌟 歷史紀錄核心資料庫函式 (持久化保存在 localStorage) 🌟
+    function getSpotHistory(spotName) {
+      const key = `ai_history_${spotName}`;
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveSpotHistory(spotName, title, content) {
+      const history = getSpotHistory(spotName);
+      const timeStr = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+      // 最多保存 15 筆紀錄，新問題排在最前面
+      history.unshift({ title, content, time: timeStr, id: Date.now() });
+      if (history.length > 15) history.pop();
+      localStorage.setItem(`ai_history_${spotName}`, JSON.stringify(history));
+      updateHistoryUI();
+    }
+
+    function updateHistoryUI() {
+      if (!currentSpotContext) return;
+      const history = getSpotHistory(currentSpotContext.name);
+      document.getElementById('history-count').innerText = history.length;
+      
+      const container = document.getElementById('history-items');
+      container.innerHTML = '';
+
+      if (history.length === 0) {
+        container.innerHTML = '<div class="text-[11px] text-slate-400 py-2 text-center">尚無提問歷史紀錄</div>';
+        return;
+      }
+
+      history.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-2 rounded-lg bg-white hover:bg-blue-50 border border-slate-200 flex justify-between items-center transition text-xs";
+        btn.onclick = () => renderHistoryDetail(index);
+        btn.innerHTML = `
+          <span class="font-bold text-slate-800 truncate pr-2">📌 ${item.title}</span>
+          <span class="text-[10px] text-slate-400 shrink-0 font-mono">${item.time}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function toggleHistoryView() {
+      const panel = document.getElementById('history-panel');
+      panel.classList.toggle('hidden');
+    }
+
+    function renderHistoryDetail(index) {
+      if (!currentSpotContext) return;
+      const history = getSpotHistory(currentSpotContext.name);
+      const target = history[index];
+      if (!target) return;
+
+      const contentEl = document.getElementById('ai-reply-content');
+      contentEl.innerHTML = `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+          <div class="text-[10px] text-blue-600 font-bold flex items-center justify-between border-b pb-1">
+            <span>📜 歷史紀錄：${target.title}</span>
+            <span class="font-mono text-slate-400 text-[9px]">${target.time}</span>
+          </div>
+          <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">${target.content}</div>
+        </div>
+      `;
+
+      // 點選後自動收起歷史面板，方便瀏覽
+      document.getElementById('history-panel').classList.add('hidden');
+    }
+
+    function clearCurrentSpotHistory() {
+      if (!currentSpotContext) return;
+      if (confirm(`確定清空「${currentSpotContext.name}」的所有提問歷史？`)) {
+        localStorage.removeItem(`ai_history_${currentSpotContext.name}`);
+        updateHistoryUI();
+        document.getElementById('ai-reply-content').innerHTML = `
+          <div class="p-4 text-center text-slate-400 text-xs">歷史紀錄已清除。點擊下方按鈕或輸入關鍵字重新分析。</div>
+        `;
+        document.getElementById('history-panel').classList.add('hidden');
+      }
+    }
+
     function openAiSheet(spot) {
       currentSpotContext = spot;
       document.getElementById('ai-spot-name').innerText = spot.name;
       document.getElementById('ai-spot-jp').innerText = spot.nameJp;
+      
+      // 收合歷史面板
+      document.getElementById('history-panel').classList.add('hidden');
+      updateHistoryUI();
 
-      callGemini("重點列出該地點的：1. 現場必知禁忌與避坑規矩 2. 最推薦品項或招牌點法（含價格與份量）。直接重點輸出，不講廢話。");
+      const history = getSpotHistory(spot.name);
+      const contentEl = document.getElementById('ai-reply-content');
+
+      // 若該景點曾有紀錄，直接還原最新一筆紀錄，省下 API 呼叫；否則發動預設分析
+      if (history.length > 0) {
+        renderHistoryDetail(0);
+      } else {
+        callGemini("重點列出該地點的：1. 現場必知禁忌與避坑規矩 2. 最推薦品項或招牌點法（含價格與份量）。直接重點輸出，不講廢話。", "重點避坑與推薦");
+      }
 
       const sheet = document.getElementById('ai-guide-sheet');
       sheet.classList.remove('translate-y-full');
@@ -308,9 +416,10 @@
     function closeAiSheet() {
       const sheet = document.getElementById('ai-guide-sheet');
       sheet.classList.add('translate-y-full');
+      document.getElementById('history-panel').classList.add('hidden');
     }
 
-    async function callGemini(userTask) {
+    async function callGemini(userTask, customTitle = null) {
       if (!currentSpotContext) return;
       const apiKey = getStoredApiKey();
       const contentEl = document.getElementById('ai-reply-content');
@@ -332,15 +441,16 @@
         return;
       }
 
+      const queryTitle = customTitle || (userTask.length > 18 ? userTask.substring(0, 16) + '...' : userTask);
+
       contentEl.innerHTML = `
         <div class="py-6 text-center space-y-1.5">
           <div class="inline-block animate-spin text-xl">🧭</div>
           <div class="text-xs font-bold text-blue-600 animate-pulse">正在精準演算「${currentSpotContext.name}」要點...</div>
-          <div class="text-[10px] text-slate-400">調用官方 Gemini 3.8 Flash 模型</div>
+          <div class="text-[10px] text-slate-400">正在調用 Gemini Flash 模型</div>
         </div>
       `;
 
-      // 嚴格指示：話少、數據具體、零客套
       const systemInstruction = `你是一位講究效率與實戰細節的東京自由行隨身助手。
 地點：${currentSpotContext.name} (${currentSpotContext.nameJp})。
 已知現場備忘：${currentSpotContext.stepTip}。
@@ -348,10 +458,9 @@
 
 回覆規範（嚴格遵守）：
 1. 嚴禁任何開場白、客套話、自介或大眾化清單，直接輸出重點結論與具體數據。
-2. 分為兩大板塊：【⚠️ 現場避坑與禁忌】、【🎯 推薦品項與點法】。
-3. 推薦品項必須明確列出：具體品名、預估日圓金額、點餐數量/分食建議。
-4. 避坑必須說明：現場規矩限制（如洗手水/邊走邊吃/置物櫃）、免稅條件或入場時限。
-5. 繁體中文條列輸出。`;
+2. 推薦品項必須明確列出：具體品名、預估日圓金額、點餐數量/分食建議。
+3. 避坑必須說明：現場規矩限制（如洗手水/邊走邊吃/置物櫃）、免稅條件或入場時限。
+4. 繁體中文條列輸出。`;
 
       let reply = null;
       let lastErr = null;
@@ -381,17 +490,19 @@
       }
 
       if (reply) {
+        // 保存至持久化歷史紀錄庫
+        saveSpotHistory(currentSpotContext.name, queryTitle, reply);
+
         contentEl.innerHTML = `
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
             <div class="text-[10px] text-blue-600 font-bold flex items-center justify-between border-b pb-1">
-              <span>✨ 即時思考解析</span>
+              <span>✨ 解析結果：${queryTitle}</span>
               <span class="font-mono text-slate-400 text-[9px]">${currentSpotContext.name}</span>
             </div>
             <div class="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">${reply}</div>
           </div>
         `;
       } else {
-        // 出錯時直接誠實回報，絕不塞假罐頭
         contentEl.innerHTML = `
           <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-200 space-y-1 text-xs">
             <div class="font-bold">連線失敗</div>
@@ -407,7 +518,7 @@
       const text = input.value.trim();
       if (!text) return;
       input.value = '';
-      callGemini(text);
+      callGemini(text, text);
     }
 
     // QR Code Modal 開關
@@ -844,7 +955,6 @@
             </div>
           </div>
 
-          <!-- 雙按鈕：呼叫真實 AI 導遊 + 導航 -->
           <div class="mt-2.5 flex gap-2">
             <button onclick="event.stopPropagation(); openAiSheet(travelData['${dayKey}'].spots[${idx}])" 
                     class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300 py-1.5 rounded-lg shadow-sm hover:bg-amber-100">
@@ -852,7 +962,7 @@
             </button>
             <a href="${navUrl}" 
                target="_blank" 
-               onclick="event.stopPropagation();"
+               onclick="event.stopPropagation();" 
                class="flex-1 inline-flex items-center justify-center gap-1 text-[11px] font-bold bg-blue-600 text-white py-1.5 rounded-lg shadow hover:bg-blue-700">
               <span>📍</span> 路線導航
             </a>
